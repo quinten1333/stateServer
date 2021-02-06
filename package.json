@@ -1,0 +1,19 @@
+{
+  "name": "stateserver",
+  "version": "1.0.0",
+  "description": "Keeps state of connected devices.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quinten1333/stateServer.git"
+  },
+  "author": "Quinten Coltof",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quinten1333/stateServer/issues"
+  },
+  "homepage": "https://github.com/quinten1333/stateServer#readme"
+}
