@@ -6,15 +6,35 @@ const msgLib = (() => {
     const client = new net.Socket();
     let state = {};
     let callbacks = {};
+    let getCallback = null;
+    let actionCallback = null;
 
     client.on('data', function (data) {
         data = JSON.parse(data);
-        state[data.plugin][data.instance] = data.state;
-        callbacks[data.plugin][data.instance](data.state);
-    });
 
-    client.on('close', function () {
-        console.log('Connection closed');
+        switch (data.type) {
+            case 'stateUpdate':
+                state[data.plugin][data.instance] = data.state;
+                callbacks[data.plugin][data.instance](data.state);
+                break;
+
+            case 'getResponse':
+                if (!getCallback) { console.error('Received get response while no callback was set!'); return; }
+                getCallback(data);
+                getCallback = null;
+                break;
+
+            case 'actionResponse':
+                if (!actionCallback) { console.error('Received action response while no callback was set!'); return; }
+                actionCallback(data);
+                actionCallback = null;
+                break;
+
+
+            default:
+                console.error('Received unkown type', data.type);
+                return;
+        }
     });
 
     client.connect(socketPath);
@@ -35,6 +55,24 @@ const msgLib = (() => {
             client.write(`unsubscribe ${plugin} ${instance}`);
             delete callbacks[plugin][instance];
             delete state[plugin][instance];
+        },
+
+        get: (plugin, instance) => {
+            return new Promise((resolve) => {
+                getCallback = (data) => { resolve(data.state); };
+                client.write(`get ${plugin} ${instance}`);
+            });
+        },
+
+        action: (plugin, instance, args) => {
+            return new Promise((resolve) => {
+                actionCallback = resolve;
+                client.write(`action ${plugin} ${instance} ${args.join(' ')}`.trim());
+            });
+        },
+
+        end: () => {
+            client.end();
         }
     }
 })();
