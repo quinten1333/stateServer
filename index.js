@@ -31,15 +31,15 @@ class Client {
         clients.splice(clients.indexOf(this), 1);
     }
 
-    send = (message) => {
-        this.client.write(JSON.stringify(message));
+    send = (type, message) => {
+        this.client.write(JSON.stringify({ ...message, type: type }));
     }
 
     end = () => this.client.end();
 
     getSubscriptCB = (plugin, instance) => {
         return (newState) => {
-            this.send({
+            this.send('stateUpdate', {
                 plugin: plugin,
                 instance: instance,
                 state: newState
@@ -66,11 +66,11 @@ class Client {
                 break;
 
             case 'get':
-                this.send(stateKeeper.get(plugin, instance));
+                this.send('getResponse', stateKeeper.get(plugin, instance));
                 break;
 
             case 'action':
-                stateKeeper.action(plugin, instance, args).then(this.send);
+                stateKeeper.action(plugin, instance, args).then((data) => this.send('actionResponse', data));
                 break;
 
             default:
