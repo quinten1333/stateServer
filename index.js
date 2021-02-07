@@ -1,3 +1,5 @@
+#!/bin/env node
+
 const net = require('net');
 
 const stateKeeper = require('./stateKeeper');
@@ -30,7 +32,6 @@ class Client {
     }
 
     send = (message) => {
-        console.log('Sending', message)
         this.client.write(JSON.stringify(message));
     }
 
@@ -66,6 +67,10 @@ class Client {
 
             case 'get':
                 this.send(stateKeeper.get(plugin, instance));
+                break;
+
+            case 'action':
+                stateKeeper.action(plugin, instance, args).then(this.send);
                 break;
 
             default:

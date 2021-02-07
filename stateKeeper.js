@@ -1,49 +1,61 @@
 const stateKeeper = (() => {
     const config = require('./config');
 
-    const instances = [];
-    const listeners = {}
-    const state = {};
+    const instances = {};
     const setState = (plugin, instance, newArgs) => {
-        state[plugin][instance] = newArgs;
+        const instanceData = instances[plugin][instance];
+        instanceData.state = newArgs;
 
-        for (const callback of listeners[plugin][instance]) {
+        for (const callback of instanceData.listeners) {
             callback(newArgs);
         }
     }
 
     for (let plugin in config.plugins) {
         const Plugin = require(`./plugins/${plugin}/index.js`);
-        state[plugin] = {};
-        listeners[plugin] = {};
+        instances[plugin] = {};
 
         for (let instance in config.plugins[plugin].instances) {
-            listeners[plugin][instance] = [];
-            instances.push(new Plugin({
-                args: config.plugins[plugin].instances[instance],
-                onStateChange: (newArgs) => setState(plugin, instance, newArgs)
-            }));
+            instances[plugin][instance] = {
+                listeners: [],
+                state: {},
+                instance: new Plugin({
+                    args: config.plugins[plugin].instances[instance],
+                    onStateChange: (newArgs) => setState(plugin, instance, newArgs)
+                })
+            };
         }
     }
 
     return {
         listen: {
             register: (plugin, instance, callback) => {
-                listeners[plugin][instance].push(callback);
+                instances[plugin][instance].listeners.push(callback);
             },
 
             unregister: (plugin, instance, callback) => {
-                const instanceListeners = listeners[plugin][instance];
+                const instanceListeners = instances[plugin][instance].listeners;
                 instanceListeners.splice(instanceListeners.indexOf(callback), 1);
             }
         },
 
         get: (plugin, instance) => {
-            return state[plugin][instance];
+            return instances[plugin][instance].state;
+        },
+
+        action: async (plugin, instance, args) => {
+            return instances[plugin][instance].instance.action(args);
         },
 
         shutdown: async () => {
-            await Promise.all(instances.map((instance) => instance.shutdown()));
+            let shuttingDown = [];
+            for (const plugin in instances) {
+                for (const instance in instances[plugin]) {
+                    shuttingDown.push(instances[plugin][instance].instance.shutdown());
+                }
+            }
+
+            await Promise.all(shuttingDown);
         }
     }
 })();

@@ -27,8 +27,6 @@ const getState = (status) => {
         service: status.service
     }
 }
-
-
 class BluOSAPI extends EventBased {
     constructor(config) {
         super(config);
@@ -67,6 +65,28 @@ class BluOSAPI extends EventBased {
             lastRequest = Date.now();
             responseData = parse((await this.blueosAPI.get(`/Status?timeout=100&etag=${responseData['@_etag']}`, { cancelToken: this.cancelRequest.token })).data).status;
             this.onResponse(responseData);
+        }
+    }
+
+    actions = {
+        play: () => this.blueosAPI.get('/Play'),
+        seek: (seconds) => blueosAPI.get(`/Play?seek=${seconds}`),
+        pause: () => this.blueosAPI.get('/Pause'),
+        toggle: () => this.blueosAPI.get('/Pause?toggle=1'),
+        skip: () => this.blueosAPI.get('/Skip'),
+        back: () => this.blueosAPI.get('/Back'),
+        shuffle: (state) => this.blueosAPI.get(`/Shuffle?state${state}`), // state is bool if shuffle is on or not.
+        repeat: (state) => this.blueosAPI.get(`/Repeat?state${state}`), // 0: Repeat queue. 1: Repeat track. 2: Do not repeat.
+        volume: (levelStr) => { // Level is percentage of max volume.
+            let level = parseInt(levelStr);
+            if (isNaN(level)) { throw new Error('Given level is not a integer'); }
+
+            if (/^(\+|\-)/.test(levelStr)) {
+                level = this.state.volume + level;
+            }
+
+            this.state.volume = level;
+            return this.blueosAPI.get(`/Volume?level=${level}`)
         }
     }
 }
