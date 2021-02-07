@@ -1,0 +1,22 @@
+{
+  "name": "stateserver_client",
+  "version": "1.0.0",
+  "description": "A cli client for the stateServer",
+  "main": "cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quinten1333/stateServer.git"
+  },
+  "author": "Quinten Coltof",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quinten1333/stateServer/issues"
+  },
+  "homepage": "https://github.com/quinten1333/stateServer#readme",
+  "dependencies": {
+    "yargs": "^16.2.0"
+  }
+}
