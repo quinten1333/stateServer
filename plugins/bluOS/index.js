@@ -4,6 +4,7 @@ const { EventBased } = require('../base');
 
 const DEFAULT_PORT = 11000;
 const MIN_TIME_BETWEEN_REQUESTS = 500; // ms
+const TIMEOUT = 100; // S
 
 const axios = require('axios').default;
 const parser = require('fast-xml-parser');
@@ -47,23 +48,31 @@ class BluOSAPI extends EventBased {
 
     async shutdown() {
         this.cancelRequest.cancel(); // Axio call in function throws errow which breaks the loop.
-
-        try {
-            await this.loop;
-        } catch (error) {} // Axios error should be ignored.
+        await this.loop;
     }
 
     async startEventLoop() {
-        let lastRequest = Date.now();
-        let responseData = parse((await this.blueosAPI.get(`/Status`, { cancelToken: this.cancelRequest.token })).data).status;
-        this.onResponse(responseData);
+        let lastRequest;
+        let responseData;
 
         while (true) {
             let sleepDuration = lastRequest - Date.now() + MIN_TIME_BETWEEN_REQUESTS; // Cap at 1 request per MIN_TIME_BETWEEN_REQUESTS miliseconds
             if (sleepDuration > 0) { await sleep(sleepDuration); }
 
             lastRequest = Date.now();
-            responseData = parse((await this.blueosAPI.get(`/Status?timeout=100&etag=${responseData['@_etag']}`, { cancelToken: this.cancelRequest.token })).data).status;
+            try {
+                responseData = parse((await this.blueosAPI.get(`/Status?${responseData ? `timeout=${TIMEOUT}&etag=${responseData['@_etag']}` : ''}`, { cancelToken: this.cancelRequest.token, timeout: (TIMEOUT + 10) * 1000 })).data).status;
+            } catch (error) {
+                if (axios.isCancel(error)) { break; }
+                if (error.code === 'ENETUNREACH') { // ENETUNREACH -> Network unreachable;
+                    await sleep(5000);
+                    continue;
+                }
+
+                console.error(error);
+                continue;
+            }
+
             this.onResponse(responseData);
         }
     }
