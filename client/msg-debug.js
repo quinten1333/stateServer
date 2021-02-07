@@ -1,6 +1,6 @@
 const net = require('net');
 const readline = require("readline");
-const conf = require('./config').server;
+const conf = require('../config').server;
 
 const rl = readline.createInterface({
     input: process.stdin,
