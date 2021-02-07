@@ -59,7 +59,7 @@ const msgLib = (() => {
 
         get: (plugin, instance) => {
             return new Promise((resolve) => {
-                getCallback = (data) => { resolve(data.state); };
+                getCallback = resolve;
                 client.write(`get ${plugin} ${instance}`);
             });
         },
