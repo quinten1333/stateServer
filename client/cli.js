@@ -1,15 +1,28 @@
 #!/bin/env node
 
 const PARSE_REGEX = /%([^%]+)%([^%]*)/g;
+const IF_REGEX = /^([^:]+):([^:]+):([^:]+)$/;
+const STRING_REGEX = /'(.*)'/;
 
 const parse = (string, state) => {
-    if (!string || !state) { return ['Invalid args.', string, state]; }
+    if (!string || !state) { throw new Error('Invalid args.' + string + state.toString()); }
 
     let result = string.split('%', 2)[0]; // Get head of the string.
-    let parsed;
+    let parsed, shorthandIf;
     while (parsed = PARSE_REGEX.exec(string)) {
-        const newVal = state[parsed[1]];
-        if (newVal === undefined) { console.log(`Attribute ${parsed[1]} unkown.`); return 1; }
+        let varName = parsed[1];
+        if (shorthandIf = IF_REGEX.exec(varName)) {
+            const [condition, trueVal, falseVal] = shorthandIf.slice(1, 4);
+            varName = state[condition] ? trueVal : falseVal;
+
+            if (STRING_REGEX.test(varName)) {
+                result += varName.substring(1, varName.length - 1) + parsed[2];
+                continue;
+            }
+        }
+
+        const newVal = state[varName];
+        if (newVal === undefined) { throw new Error(`Attribute ${varName} unkown.`); }
 
         result += newVal + parsed[2]; // Insert parsed value and possible text behind.
     }
@@ -34,7 +47,12 @@ const commands = {
         if (args._.length != 1) { console.error('Status requires exectly one argument.'); return 1; }
 
         const callback = (state) => {
-            console.log(parse(args._[0], state));
+            try {
+                console.log(parse(args._[0], state));
+            } catch (error) {
+                console.error(error.message);
+                stateServerAPI.end();
+            }
         };
 
         if (!args.tail) {
@@ -50,10 +68,11 @@ const commands = {
     },
 
     action: async () => {
-        const response = await stateServerAPI.action(plugin, instance, process.argv.slice(4));
+        const response = await stateServerAPI.action(plugin, instance, args._);
         stateServerAPI.end();
+        console.log(response)
         console.log(response.status);
-        process.exitCode = response.code;
+        return response.code;
     }
 }
 
@@ -63,6 +82,11 @@ if (!commands[command]) {
 }
 
 stateServerAPI = require('./msgLib');
+process.on('SIGINT', () => {
+    stateServerAPI.end();
+});
+
+
 commands[command]().then((statusCode) => {
     process.exitCode = statusCode;
 })
