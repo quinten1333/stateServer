@@ -1,31 +1,42 @@
 #!/bin/env node
 
-const PARSE_REGEX = /%([^%]+)%([^%]*)/g;
-const IF_REGEX = /^([^:]+):([^:]+):([^:]+)$/;
-const STRING_REGEX = /'(.*)'/;
+const IF_REGEX = /^([^:]+):([^:]*):([^:]*)$/;
 
-const parse = (string, state) => {
-    if (!string || !state) { throw new Error('Invalid args.' + string + state.toString()); }
+const parseCode = (string, state) => {
+    if (!string || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
 
-    let result = string.split('%', 2)[0]; // Get head of the string.
-    let parsed, shorthandIf;
-    while (parsed = PARSE_REGEX.exec(string)) {
-        let varName = parsed[1];
-        if (shorthandIf = IF_REGEX.exec(varName)) {
-            const [condition, trueVal, falseVal] = shorthandIf.slice(1, 4);
-            varName = state[condition] ? trueVal : falseVal;
+    const shorthandIf = IF_REGEX.exec(string);
+    if (shorthandIf) {
+        const [condition, trueVal, falseVal] = shorthandIf.slice(1, 4);
 
-            if (STRING_REGEX.test(varName)) {
-                result += varName.substring(1, varName.length - 1) + parsed[2];
-                continue;
-            }
-        }
-
-        const newVal = state[varName];
-        if (newVal === undefined) { throw new Error(`Attribute ${varName} unkown.`); }
-
-        result += newVal + parsed[2]; // Insert parsed value and possible text behind.
+        return parseString(state[condition] ? trueVal : falseVal, state);
     }
+
+    return state[string];
+}
+
+const parseString = (string, state) => {
+    if (!string || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
+
+
+    let depth = 0;
+    let startIndex = string.indexOf('[');
+    let i = startIndex;
+    let result = string.substring(0, startIndex);
+    while (startIndex >= 0) {
+        let char = string[i];
+        if (char === '[') depth += 1;
+        if (char === ']') depth -= 1;
+        i++;
+
+        if (depth !== 0) { continue; }
+
+        result += parseCode(string.substring(startIndex + 1, i - 1), state);
+        startIndex = string.indexOf('[', i);
+        i = startIndex;
+    }
+
+    result += string.substring(string.lastIndexOf(']') + 1);
 
     return result;
 }
@@ -48,7 +59,7 @@ const commands = {
 
         const callback = (state) => {
             try {
-                console.log(parse(args._[0], state));
+                console.log(parseString(args._[0], state));
             } catch (error) {
                 console.error(error.message);
                 stateServerAPI.end();
