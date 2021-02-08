@@ -16,7 +16,7 @@ const parseCode = (string, state) => {
 }
 
 const parseString = (string, state) => {
-    if (!string || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
+    if (typeof string !== 'string' || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
 
 
     let depth = 0;
