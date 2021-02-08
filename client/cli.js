@@ -81,7 +81,6 @@ const commands = {
     action: async () => {
         const response = await stateServerAPI.action(plugin, instance, args._);
         stateServerAPI.end();
-        console.log(response)
         console.log(response.status);
         return response.code;
     }
