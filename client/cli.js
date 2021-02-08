@@ -1,6 +1,6 @@
 #!/bin/env node
 
-const IF_REGEX = /^([^:]+):([^:]*):([^:]*)$/;
+const IF_REGEX = /^([^:]+)\?([^:]*):([^:]*)$/;
 
 const parseCode = (string, state) => {
     if (!string || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
