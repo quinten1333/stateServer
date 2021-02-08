@@ -23,7 +23,7 @@ const getState = (status) => {
         artist: status.artist,
         playing: status.state !== 'pause' && status.status !== 'stop',
         volume: status.volume,
-        muted: status.mute !== '0' || status.volume === 0,
+        muted: status.mute === 1 || status.volume === 0,
         spotify: status.service === 'Spotify',
         service: status.service
     }
@@ -86,6 +86,10 @@ class BluOSAPI extends EventBased {
         back: () => this.blueosAPI.get('/Back'),
         shuffle: (state) => this.blueosAPI.get(`/Shuffle?state${state}`), // state is bool if shuffle is on or not.
         repeat: (state) => this.blueosAPI.get(`/Repeat?state${state}`), // 0: Repeat queue. 1: Repeat track. 2: Do not repeat.
+        mute: () => {
+            this.state.muted = !this.state.muted;
+            return this.blueosAPI.get(`/Volume?mute=${this.state.muted ? '1' : '0'}`);
+        },
         volume: (levelStr) => { // Level is percentage of max volume.
             let level = parseInt(levelStr);
             if (isNaN(level)) { throw new Error('Given level is not a integer'); }
