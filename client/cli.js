@@ -68,8 +68,7 @@ const commands = {
 
         if (!args.tail) {
             stateServerAPI.get(plugin, instance)
-                .then(callback)
-                .then(stateServerAPI.end);
+                .then(callback);
 
             return 0;
         }
@@ -99,4 +98,5 @@ process.on('SIGINT', () => {
 
 commands[command]().then((statusCode) => {
     process.exitCode = statusCode;
+    stateServerAPI.end();
 })
