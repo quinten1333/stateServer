@@ -9,10 +9,11 @@ const msgLib = (() => {
     let getCallback = null;
     let actionCallback = null;
 
-    client.on('data', function (data) {
-        data = JSON.parse(data);
+    client.on('data', function (message) {
+        message = JSON.parse(message);
+        const { data, type } = message;
 
-        switch (data.type) {
+        switch (type) {
             case 'stateUpdate':
                 state[data.plugin][data.instance] = data.state;
                 callbacks[data.plugin][data.instance](data.state);

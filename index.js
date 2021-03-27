@@ -32,7 +32,7 @@ class Client {
     }
 
     send = (type, message) => {
-        this.client.write(JSON.stringify({ ...message, type: type }));
+        this.client.write(JSON.stringify({ data: message, type: type }));
     }
 
     end = () => this.client.end();
