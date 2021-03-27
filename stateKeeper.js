@@ -20,10 +20,12 @@ const stateKeeper = (() => {
                 listeners: [],
                 state: {},
                 instance: new Plugin({
+                    name: instance,
                     args: config.plugins[plugin].instances[instance],
                     onStateChange: (newArgs) => setState(plugin, instance, newArgs)
                 })
             };
+            instances[plugin][instance].instance.initialize();
         }
     }
 
