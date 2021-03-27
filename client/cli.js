@@ -45,7 +45,7 @@ const args = require('yargs')(process.argv)
     .command('<plugin> <instance> status <format>', 'Get the status of an instance.')
     .command('<plugin> <instance> action [...args]', 'Execute an action')
     .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
-    .demandCommand(5)
+    .demandCommand(4)
     .help()
     .argv;
 
@@ -55,11 +55,9 @@ let stateServerAPI;
 
 const commands = {
     status: async () => {
-        if (args._.length != 1) { console.error('Status requires exectly one argument.'); return 1; }
-
         const callback = (state) => {
             try {
-                console.log(parseString(args._[0], state));
+                console.log(args._.length > 0 ? parseString(args._[0], state) : state);
             } catch (error) {
                 console.error(error.message);
                 stateServerAPI.end();
