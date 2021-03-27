@@ -7,17 +7,14 @@ module.exports = {
         bluOS: {
             instances: {
                 streamer: {
-                    ip: "192.168.1.242"
+                    ip: "192.168.1.243"
                 }
             }
         },
-        // ping: {
-        //     instances: [
-        //         {
-                    // timeout: 60, // Seconds
-        //             ip: "192.168.1.120"
-        //         }
-        //     ]
-        // }
+        jsonStorage: {
+            instances: {
+                laptop: {}
+            }
+        }
     }
 }
