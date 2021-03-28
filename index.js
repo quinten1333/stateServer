@@ -48,10 +48,16 @@ class Client {
     }
 
     handleCommand = (msg) => {
-        const args = msg.split(/ /g);
+        let args;
+        try {
+            args = JSON.parse(msg);
+        } catch (error) {
+            this.send('error', 'Invalid JSON send');
+            return;
+        }
 
         if (args.length < 3) {
-            this.send('Need at least three arguments: <command> <plugin> <instance>');
+            this.send('error', 'Need at least three arguments: [<command>, <plugin>, <instance>]');
             return;
         }
 
@@ -74,7 +80,7 @@ class Client {
                 break;
 
             default:
-                this.send(`Unkown command ${command}`);
+                this.send('error', `Unkown command ${command}`);
                 return;
         }
     };

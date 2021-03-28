@@ -31,6 +31,9 @@ const msgLib = (() => {
                 actionCallback = null;
                 break;
 
+            case 'error':
+                console.error('Error', data);
+                break;
 
             default:
                 console.error('Received unkown type', data.type);
@@ -46,14 +49,14 @@ const msgLib = (() => {
             if (callbacks[plugin][instance]) { console.log('Double subscribe is not supported.'); return; }
 
             callbacks[plugin][instance] = callback;
-            client.write(`subscribe ${plugin} ${instance}`);
+            client.write(JSON.stringify(['subscribe', plugin, instance]));
         },
 
         unsubscribe: (plugin, instance) => {
             if (!state[plugin]) { console.log(`Unkown plugin ${plugin}`); return; }
             if (!state[plugin][instance]) { console.log(`Unkown instance ${instance}`); return; }
 
-            client.write(`unsubscribe ${plugin} ${instance}`);
+            client.write(JSON.stringify(['unsubscribe', plugin, instance]));
             delete callbacks[plugin][instance];
             delete state[plugin][instance];
         },
@@ -61,14 +64,14 @@ const msgLib = (() => {
         get: (plugin, instance) => {
             return new Promise((resolve) => {
                 getCallback = resolve;
-                client.write(`get ${plugin} ${instance}`);
+                client.write(JSON.stringify(['get', plugin, instance]));
             });
         },
 
         action: (plugin, instance, args) => {
             return new Promise((resolve) => {
                 actionCallback = resolve;
-                client.write(`action ${plugin} ${instance} ${args.join(' ')}`.trim());
+                client.write(JSON.stringify(['action', plugin, instance, ...args]));
             });
         },
 
