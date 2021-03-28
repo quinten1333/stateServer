@@ -12,7 +12,19 @@ const parseCode = (string, state) => {
         return parseString(state[condition] ? trueVal : falseVal, state);
     }
 
-    return state[string];
+    let key = string.split('.');
+
+    let value = state;
+    for (let part of key) {
+        try {
+            value = value[part];
+        } catch (e) {
+            console.error(string, ' is not an existing key in the state');
+            return undefined;
+        }
+    }
+
+    return value;
 }
 
 const parseString = (string, state) => {
