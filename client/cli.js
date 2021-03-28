@@ -25,7 +25,7 @@ const parseCode = (string, state) => {
     if (shorthandIf) {
         const [condition, trueVal, falseVal] = shorthandIf.slice(1, 4);
 
-        return parseString(getNestedValue(condition, state) ? trueVal : falseVal, state);
+        return parseString(getNestedValue(condition.trim(), state) ? trueVal : falseVal, state);
     }
 
     let value = getNestedValue(string, state);
