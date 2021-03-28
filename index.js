@@ -72,7 +72,15 @@ class Client {
                 break;
 
             case 'get':
-                this.send('getResponse', stateKeeper.get(plugin, instance));
+                let state;
+                try {
+                    state = stateKeeper.get(plugin, instance);
+                } catch (e) {
+                    this.send('error', 'Unkown plugin/instance combination.');
+                    return;
+                }
+
+                this.send('getResponse', state);
                 break;
 
             case 'action':
