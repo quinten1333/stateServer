@@ -49,7 +49,7 @@ class JsonStorage extends EventBased {
                 cursor = cursor[part];
             }
 
-            cursor[key[key.length - 1]] = value;
+            cursor[key[key.length - 1]] = JSON.parse(value);
             this.onStateChange(this.state);
         }
     }
