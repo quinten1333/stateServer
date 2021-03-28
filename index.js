@@ -94,14 +94,18 @@ class Client {
     };
 }
 
-process.on('SIGINT', async () => {
+const onExit = async () => {
     console.log("Shutting down.");
 
     clients.forEach((client) => client.end());
 
     server.close();
     await stateKeeper.shutdown();
-});
+};
+
+['SIGINT', 'SIGTERM'].forEach((event) => {
+    process.on(event, onExit);
+})
 
 const server = net.createServer((client) => {
     new Client(client);
