@@ -24,6 +24,10 @@ const parseCode = (string, state) => {
         }
     }
 
+    if (typeof(value) === 'object') {
+        return JSON.stringify(value);
+    }
+
     return value;
 }
 
