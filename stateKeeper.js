@@ -2,12 +2,12 @@ const stateKeeper = (() => {
     const config = require('./config');
 
     const instances = {};
-    const setState = (plugin, instance, newArgs) => {
+    const setState = (plugin, instance, newState) => {
         const instanceData = instances[plugin][instance];
-        instanceData.state = newArgs;
+        instanceData.state = newState;
 
         for (const callback of instanceData.listeners) {
-            callback(newArgs);
+            callback(newState);
         }
     }
 
@@ -22,7 +22,7 @@ const stateKeeper = (() => {
                 instance: new Plugin({
                     name: instance,
                     args: config.plugins[plugin].instances[instance],
-                    onStateChange: (newArgs) => setState(plugin, instance, newArgs)
+                    onStateChange: (newState) => setState(plugin, instance, newState)
                 })
             };
             instances[plugin][instance].instance.initialize();
