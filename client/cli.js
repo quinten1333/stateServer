@@ -2,6 +2,22 @@
 
 const IF_REGEX = /^([^:]+)\?([^:]*):([^:]*)$/;
 
+const getNestedValue = (key, state) => {
+    key = key.split('.');
+
+    let value = state;
+    for (let part of key) {
+        try {
+            value = value[part];
+        } catch (e) {
+            console.error(key.join('.'), ' is not an existing key in the state');
+            return undefined;
+        }
+    }
+
+    return value;
+}
+
 const parseCode = (string, state) => {
     if (!string || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
 
@@ -9,21 +25,10 @@ const parseCode = (string, state) => {
     if (shorthandIf) {
         const [condition, trueVal, falseVal] = shorthandIf.slice(1, 4);
 
-        return parseString(state[condition] ? trueVal : falseVal, state);
+        return parseString(getNestedValue(condition, state) ? trueVal : falseVal, state);
     }
 
-    let key = string.split('.');
-
-    let value = state;
-    for (let part of key) {
-        try {
-            value = value[part];
-        } catch (e) {
-            console.error(string, ' is not an existing key in the state');
-            return undefined;
-        }
-    }
-
+    let value = getNestedValue(string, state);
     if (typeof(value) === 'object') {
         return JSON.stringify(value);
     }
