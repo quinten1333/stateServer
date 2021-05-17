@@ -4,7 +4,7 @@ const stateKeeper = (() => {
     const instances = {};
     const setState = (plugin, instance, newState) => {
         const instanceData = instances[plugin][instance];
-        instanceData.state = newState;
+        instanceData.state = { ...instanceData.state, ...newState };
 
         for (const callback of instanceData.listeners) {
             callback(newState);
