@@ -100,7 +100,10 @@ class BluOSAPI extends EventBased {
 
             this.state.volume = level;
             return this.blueosAPI.get(`/Volume?level=${level}`)
-        }
+        },
+
+        // Custom not documented functions.
+        playSource: (source) => this.blueosAPI.get(`/Play?url=${source}`) // Get source "url" from `/RadioBrowse?service=Capture`
     }
 }
 
