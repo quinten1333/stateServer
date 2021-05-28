@@ -84,8 +84,8 @@ class BluOSAPI extends EventBased {
         toggle: () => this.blueosAPI.get('/Pause?toggle=1'),
         skip: () => this.blueosAPI.get('/Skip'),
         back: () => this.blueosAPI.get('/Back'),
-        shuffle: (state) => this.blueosAPI.get(`/Shuffle?state${state}`), // state is bool if shuffle is on or not.
-        repeat: (state) => this.blueosAPI.get(`/Repeat?state${state}`), // 0: Repeat queue. 1: Repeat track. 2: Do not repeat.
+        shuffle: (state) => this.blueosAPI.get(`/Shuffle?state=${state}`), // state is bool if shuffle is on or not.
+        repeat: (state) => this.blueosAPI.get(`/Repeat?state=${state}`), // 0: Repeat queue. 1: Repeat track. 2: Do not repeat.
         mute: () => {
             this.state.muted = !this.state.muted;
             return this.blueosAPI.get(`/Volume?mute=${this.state.muted ? '1' : '0'}`);
