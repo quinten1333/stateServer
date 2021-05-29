@@ -18,7 +18,7 @@ const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 const getState = (status) => {
     return {
-        title: status.title1,
+        title: status.title1 || status.title2 || status.title3,
         album: status.album,
         artist: status.artist,
         playing: status.state !== 'pause' && status.status !== 'stop',
@@ -28,6 +28,7 @@ const getState = (status) => {
         service: status.service
     }
 }
+
 class BluOSAPI extends EventBased {
     constructor(config) {
         super(config);
