@@ -103,7 +103,8 @@ class BluOSAPI extends EventBased {
         },
 
         // Custom not documented functions.
-        playSource: (source) => this.blueosAPI.get(`/Play?url=${source}`) // Get source "url" from `/RadioBrowse?service=Capture`
+        playSource: (source) => this.blueosAPI.get(`/Play?url=${source}`), // Get source "url" from `/RadioBrowse?service=Capture`
+        playUrl: (url, title) => this.blueosAPI.post(`/Play?url=${encodeURI(url)}&title1=${title}`)
     }
 }
 
