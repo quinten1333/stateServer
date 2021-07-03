@@ -4,6 +4,8 @@
   "description": "Keeps state of connected devices.",
   "main": "index.js",
   "scripts": {
+    "start": "index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/quinten1333/stateServer/issues"
   },
-  "homepage": "https://github.com/quinten1333/stateServer#readme"
+  "homepage": "https://github.com/quinten1333/stateServer#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.9"
+  }
 }
