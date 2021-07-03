@@ -4,8 +4,9 @@ const connections = []
 class Connection {
     constructor(client) {
         this.client = client;
-        this.client.on('data', this.onData);
-        this.client.on('end', this.onEnd);
+        this.client.on('data', this.onData); // Native socket
+        this.client.on('message', this.onData); // WebSocket
+        this.client.on('end', this.onClose);
         this.client.on('close', this.onClose);
 
         this.callbacks = [];
@@ -17,9 +18,9 @@ class Connection {
         this.handleCommand(data);
     }
 
-    onEnd = () => {
+    onClose = () => {
         this.callbacks.forEach((callbackData) => stateKeeper.listen.unregister(...callbackData));
-        this.end();
+        this.close();
     }
 
     onClose = () => {
@@ -27,10 +28,10 @@ class Connection {
     }
 
     send = (type, message) => {
-        this.client.write(JSON.stringify({ data: message, type: type }));
+        this.client.send(JSON.stringify({ data: message, type: type }));
     }
 
-    end = () => this.client.end();
+    close = () => this.client.close();
 
     getSubscriptCB = (plugin, instance) => {
         return (newState) => {
@@ -92,6 +93,6 @@ class Connection {
 module.exports = {
     Connection,
     closeAll: () => {
-        connections.forEach((client) => client.end())
+        connections.forEach((client) => client.close())
     }
  }

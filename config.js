@@ -1,6 +1,11 @@
 module.exports = {
     server: {
-        listen: "/home/quinten/.stateServer.sock"
+        socket: {
+            listen: "/home/quinten/.stateServer.sock"
+        },
+        webSocket: {
+            listen: process.env.WS_PORT || 3000
+        }
     },
 
     plugins: {

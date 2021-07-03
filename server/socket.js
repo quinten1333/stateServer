@@ -2,10 +2,14 @@
 
 const net = require('net');
 
-const config = require('../config').server;
+const config = require('../config').server.socket;
 const { Connection } = require('./lib/Connection');
 
 const server = net.createServer((client) => {
+    // Standardize function names
+    client.close = client.end;
+    client.send = client.write;
+
     new Connection(client);
 });
 

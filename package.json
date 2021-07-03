@@ -20,5 +20,8 @@
   "homepage": "https://github.com/quinten1333/stateServer#readme",
   "devDependencies": {
     "nodemon": "^2.0.9"
+  },
+  "dependencies": {
+    "ws": "^7.5.1"
   }
 }
