@@ -1,4 +1,7 @@
+#!/bin/env node
+
 const fs = require('fs/promises');
+const path = require('path');
 
 const stateKeeper = require('./stateKeeper');
 const { closeAll } = require('./server/lib/Connection');
@@ -31,7 +34,7 @@ const onExit = async (event) => {
 })
 
 const main = async () => {
-    const dir = await fs.readdir('./server', { withFileTypes: true });
+    const dir = await fs.readdir(path.resolve(__dirname, './server'), { withFileTypes: true });
     for (const file of dir) {
         if (!file.isFile() || !JS_FILE_REGEX.test(file.name)) { continue; }
 

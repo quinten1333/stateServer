@@ -1,5 +1,3 @@
-#!/bin/env node
-
 const net = require('net');
 
 const config = require('../config').server.socket;
