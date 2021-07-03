@@ -1,114 +1,51 @@
-#!/bin/env node
-
-const net = require('net');
+const fs = require('fs/promises');
 
 const stateKeeper = require('./stateKeeper');
-const config = require('./config').server;
+const { closeAll } = require('./server/lib/Connection');
 
-const clients = []
-class Client {
-    constructor(client) {
-        this.client = client;
-        this.client.on('data', this.onData);
-        this.client.on('end', this.onEnd);
-        this.client.on('close', this.onClose);
+const JS_FILE_REGEX = /.js$/;
 
-        this.callbacks = [];
-        clients.push(this);
-    }
+const servers = [];
 
-    onData = (data) => {
-        data = data.toString();
-        this.handleCommand(data);
-    }
+const onExit = async (event) => {
+    if (event instanceof Error) console.log('uncaughtException')
 
-    onEnd = () => {
-        this.callbacks.forEach((callbackData) => stateKeeper.listen.unregister(...callbackData));
-        this.end();
-    }
-
-    onClose = () => {
-        clients.splice(clients.indexOf(this), 1);
-    }
-
-    send = (type, message) => {
-        this.client.write(JSON.stringify({ data: message, type: type }));
-    }
-
-    end = () => this.client.end();
-
-    getSubscriptCB = (plugin, instance) => {
-        return (newState) => {
-            this.send('stateUpdate', {
-                plugin: plugin,
-                instance: instance,
-                state: newState
-            });
-        }
-    }
-
-    handleCommand = (msg) => {
-        let args;
-        try {
-            args = JSON.parse(msg);
-        } catch (error) {
-            this.send('error', 'Invalid JSON send');
-            return;
-        }
-
-        if (args.length < 3) {
-            this.send('error', 'Need at least three arguments: [<command>, <plugin>, <instance>]');
-            return;
-        }
-
-        const [command, plugin, instance] = args.splice(0, 3);
-
-        switch (command) {
-            case 'subscribe': // TODO: Check for double registration.
-                const callback = this.getSubscriptCB(plugin, instance);
-                callback(stateKeeper.get(plugin, instance));
-                this.callbacks.push([plugin, instance, callback]);
-                stateKeeper.listen.register(plugin, instance, callback);
-                break;
-
-            case 'get':
-                let state;
-                try {
-                    state = stateKeeper.get(plugin, instance);
-                } catch (e) {
-                    this.send('error', 'Unkown plugin/instance combination.');
-                    return;
-                }
-
-                this.send('getResponse', state);
-                break;
-
-            case 'action':
-                stateKeeper.action(plugin, instance, args).then((data) => this.send('actionResponse', data));
-                break;
-
-            default:
-                this.send('error', `Unkown command ${command}`);
-                return;
-        }
-    };
-}
-
-const onExit = async () => {
     console.log("Shutting down.");
 
-    clients.forEach((client) => client.end());
+    closeAll();
+    for (const server of servers) {
+        await server.shutdown();
+    }
 
-    server.close();
     await stateKeeper.shutdown();
+    console.log('Shut down.');
+
+    if (event instanceof Error) {
+        console.error(event);
+        process.exitCode = 1;
+    }
 };
 
-['SIGINT', 'SIGTERM'].forEach((event) => {
-    process.on(event, onExit);
+['SIGINT', 'SIGTERM', 'SIGUSR2', 'uncaughtException'].forEach((event) => {
+    process.once(event, onExit);
 })
 
-const server = net.createServer((client) => {
-    new Client(client);
-});
+const main = async () => {
+    const dir = await fs.readdir('./server', { withFileTypes: true });
+    for (const file of dir) {
+        if (!file.isFile() || !JS_FILE_REGEX.test(file.name)) { continue; }
 
-server.listen(config.listen);
+        const server = require(`./server/${file.name}`);
+        if (typeof server.initialize !== 'function' || typeof server.shutdown !== 'function') {
+            console.error(`File ${file.name} does not have a initialize and shutdown method!`);
+            continue;
+        }
+
+        server.initialize();
+        servers.push(server);
+    }
+
+    console.log('All servers initialized.');
+}
+
+main();
