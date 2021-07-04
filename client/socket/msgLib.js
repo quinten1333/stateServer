@@ -15,8 +15,8 @@ const msgLib = (() => {
 
         switch (type) {
             case 'stateUpdate':
-                state[data.plugin][data.instance] = data.state;
-                callbacks[data.plugin][data.instance](data.state);
+                state[message.plugin][message.instance] = data;
+                callbacks[message.plugin][message.instance](data);
                 break;
 
             case 'getResponse':
@@ -49,14 +49,14 @@ const msgLib = (() => {
             if (callbacks[plugin][instance]) { console.log('Double subscribe is not supported.'); return; }
 
             callbacks[plugin][instance] = callback;
-            client.write(JSON.stringify(['subscribe', plugin, instance]));
+            client.write(JSON.stringify({ command: 'subscribe', plugin, instance }));
         },
 
         unsubscribe: (plugin, instance) => {
             if (!state[plugin]) { console.log(`Unkown plugin ${plugin}`); return; }
             if (!state[plugin][instance]) { console.log(`Unkown instance ${instance}`); return; }
 
-            client.write(JSON.stringify(['unsubscribe', plugin, instance]));
+            client.write(JSON.stringify({ command: 'unsubscribe', plugin, instance }));
             delete callbacks[plugin][instance];
             delete state[plugin][instance];
         },
@@ -64,14 +64,14 @@ const msgLib = (() => {
         get: (plugin, instance) => {
             return new Promise((resolve) => {
                 getCallback = resolve;
-                client.write(JSON.stringify(['get', plugin, instance]));
+                client.write(JSON.stringify({ command: 'get', plugin, instance }));
             });
         },
 
         action: (plugin, instance, args) => {
             return new Promise((resolve) => {
                 actionCallback = resolve;
-                client.write(JSON.stringify(['action', plugin, instance, ...args]));
+                client.write(JSON.stringify({ command: 'action', plugin, instance, args }));
             });
         },
 
