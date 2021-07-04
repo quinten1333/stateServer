@@ -9,7 +9,7 @@ class Connection {
         this.client.on('end', this.onClose);
         this.client.on('close', this.onClose);
 
-        this.callbacks = [];
+        this.callbacks = {};
         connections.push(this);
     }
 
@@ -19,7 +19,11 @@ class Connection {
     }
 
     onClose = () => {
-        this.callbacks.forEach((callbackData) => stateKeeper.listen.unregister(...callbackData));
+        for (const plugin in this.callbacks) {
+            for (const instance in this.callbacks[plugin]) {
+                stateKeeper.listen.unregister(plugin, instance, this.callbacks[plugin][instance])
+            }
+        }
         this.close();
     }
 
@@ -27,18 +31,17 @@ class Connection {
         connections.splice(connections.indexOf(this), 1);
     }
 
-    send = (type, message) => {
-        this.client.send(JSON.stringify({ data: message, type: type }));
+    send = (type, message, metadata={}) => {
+        this.client.send(JSON.stringify({ data: message, type: type, ...metadata }));
     }
 
     close = () => this.client.close();
 
     getSubscriptCB = (plugin, instance) => {
         return (newState) => {
-            this.send('stateUpdate', {
+            this.send('stateUpdate', newState, {
                 plugin: plugin,
-                instance: instance,
-                state: newState
+                instance: instance
             });
         }
     }
@@ -52,19 +55,36 @@ class Connection {
             return;
         }
 
-        if (args.length < 3) {
-            this.send('error', 'Need at least three arguments: [<command>, <plugin>, <instance>]');
+        if (!args.command || !args.plugin || !args.instance) {
+            this.send('error', 'Need at least three arguments: { <command>, <plugin>, <instance> }');
             return;
         }
 
-        const [command, plugin, instance] = args.splice(0, 3);
+        const { command, plugin, instance } = args;
 
         switch (command) {
-            case 'subscribe': // TODO: Check for double registration.
+            case 'subscribe':
+                if (this.callbacks[plugin] && this.callbacks[plugin][instance]) {
+                    this.send('error', `You are already subscribed to this instance.`);
+                    return;
+                }
+
                 const callback = this.getSubscriptCB(plugin, instance);
                 callback(stateKeeper.get(plugin, instance));
-                this.callbacks.push([plugin, instance, callback]);
+
+                if (!this.callbacks[plugin]) this.callbacks[plugin] = {}
+                this.callbacks[plugin][instance] = callback;
                 stateKeeper.listen.register(plugin, instance, callback);
+                break;
+
+            case 'unsubscribe':
+                if (!this.callbacks[plugin] || !this.callbacks[plugin][instance]) {
+                    this.send('error', `You were not subscribed to this instance.`);
+                    return;
+                }
+
+                stateKeeper.listen.unregister(plugin, instance, this.callbacks[plugin][instance]);
+                delete this.callbacks[plugin][instance];
                 break;
 
             case 'get':
@@ -76,11 +96,11 @@ class Connection {
                     return;
                 }
 
-                this.send('getResponse', state);
+                this.send('getResponse', state, { id: args.id });
                 break;
 
             case 'action':
-                stateKeeper.action(plugin, instance, args).then((data) => this.send('actionResponse', data));
+                stateKeeper.action(plugin, instance, args.args).then((data) => this.send('actionResponse', data, { id: args.id }));
                 break;
 
             default:
