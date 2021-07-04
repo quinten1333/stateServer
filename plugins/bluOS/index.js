@@ -24,8 +24,10 @@ const getState = (status) => {
         playing: status.state !== 'pause' && status.status !== 'stop',
         volume: status.volume,
         muted: status.mute === 1 || status.volume === 0,
-        spotify: status.service === 'Spotify',
-        service: status.service
+        service: status.service,
+        image: status.image,
+        totlen: status.totlen,
+        secs: status.secs
     }
 }
 
@@ -80,7 +82,7 @@ class BluOSAPI extends EventBased {
 
     actions = {
         play: () => this.blueosAPI.get('/Play'),
-        seek: (seconds) => blueosAPI.get(`/Play?seek=${seconds}`),
+        seek: (seconds) => this.blueosAPI.get(`/Play?seek=${seconds}`),
         pause: () => this.blueosAPI.get('/Pause'),
         toggle: () => this.blueosAPI.get('/Pause?toggle=1'),
         skip: () => this.blueosAPI.get('/Skip'),
