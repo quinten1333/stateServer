@@ -1,10 +1,10 @@
 module.exports = {
     server: {
         socket: {
-            listen: "/home/quinten/.stateServer.sock"
+            listen: process.env.PORT || 3002
         },
         webSocket: {
-            listen: process.env.WS_PORT || 3000
+            listen: process.env.WS_PORT || 3001
         }
     },
 
