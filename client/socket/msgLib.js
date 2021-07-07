@@ -1,8 +1,6 @@
 const net = require('net');
 
-const socketPath = '/home/quinten/.stateServer.sock';
-
-const msgLib = (() => {
+const msgLib = (server) => {
     const client = new net.Socket();
     let state = {};
     let callbacks = {};
@@ -41,7 +39,7 @@ const msgLib = (() => {
         }
     });
 
-    client.connect(socketPath);
+    client.connect(server.port, server.host);
 
     return {
         subscribe: (plugin, instance, callback) => {
@@ -79,6 +77,6 @@ const msgLib = (() => {
             client.end();
         }
     }
-})();
+};
 
 module.exports = msgLib;

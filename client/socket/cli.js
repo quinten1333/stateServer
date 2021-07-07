@@ -1,5 +1,7 @@
 #!/bin/env node
 
+const StateServerAPI = require('./msgLib');
+
 const IF_REGEX = /^([^:]+)\?([^:]*):([^:]*)$/;
 
 const getNestedValue = (key, state) => {
@@ -66,6 +68,8 @@ const args = require('yargs')(process.argv)
     .command('<plugin> <instance> status <format>', 'Get the status of an instance.')
     .command('<plugin> <instance> action [...args]', 'Execute an action')
     .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
+    .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.17' })
+    .option('port', { description: 'Port on which the stateserver is running', alias: 'p', default: 2000, type: 'number'})
     .demandCommand(4)
     .help()
     .argv;
@@ -110,7 +114,10 @@ if (!commands[command]) {
     process.exit(1);
 }
 
-stateServerAPI = require('./msgLib');
+stateServerAPI = StateServerAPI({
+    port: args.port,
+    host: args.host
+});
 process.on('SIGINT', () => {
     stateServerAPI.end();
 });
