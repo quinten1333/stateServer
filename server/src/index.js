@@ -4,7 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const stateKeeper = require('./stateKeeper');
-const { closeAll } = require('./server/lib/Connection');
+const { closeAll } = require('./servers/lib/Connection');
 
 const JS_FILE_REGEX = /.js$/;
 
@@ -34,11 +34,11 @@ const onExit = async (event) => {
 })
 
 const main = async () => {
-    const dir = await fs.readdir(path.resolve(__dirname, './server'), { withFileTypes: true });
+    const dir = await fs.readdir(path.resolve(__dirname, './servers'), { withFileTypes: true });
     for (const file of dir) {
         if (!file.isFile() || !JS_FILE_REGEX.test(file.name)) { continue; }
 
-        const server = require(`./server/${file.name}`);
+        const server = require(`./servers/${file.name}`);
         if (typeof server.initialize !== 'function' || typeof server.shutdown !== 'function') {
             console.error(`File ${file.name} does not have a initialize and shutdown method!`);
             continue;
