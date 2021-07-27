@@ -4,18 +4,13 @@ const connections = []
 class Connection {
     constructor(client) {
         this.client = client;
-        this.client.on('data', this.onData); // Native socket
-        this.client.on('message', this.onData); // WebSocket
+        this.client.on('data', this.handleCommand); // Native socket
+        this.client.on('message', this.handleCommand); // WebSocket
         this.client.on('end', this.onClose);
         this.client.on('close', this.onClose);
 
         this.callbacks = {};
         connections.push(this);
-    }
-
-    onData = (data) => {
-        data = data.toString();
-        this.handleCommand(data);
     }
 
     onClose = () => {
