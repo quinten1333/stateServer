@@ -92,7 +92,7 @@ class Connection {
                 try {
                     state = stateKeeper.get(plugin, instance);
                 } catch (e) {
-                    this.send('error', 'Unkown plugin/instance combination.');
+                    this.send('error', 'Unkown plugin/instance combination.', { id: args.id });
                     return;
                 }
 
