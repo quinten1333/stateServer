@@ -64,65 +64,76 @@ const parseString = (string, state) => {
     return result;
 }
 
-const args = require('yargs')(process.argv)
-    .command('<plugin> <instance> status <format>', 'Get the status of an instance.')
-    .command('<plugin> <instance> action [...args]', 'Execute an action')
-    .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
-    .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.17' })
-    .option('port', { description: 'Port on which the stateserver is running', alias: 'p', default: 2000, type: 'number'})
-    .demandCommand(4)
-    .help()
-    .argv;
+const main = async () => {
+    const args = require('yargs')(process.argv)
+        .command('<plugin> <instance> status <format>', 'Get the status of an instance.')
+        .command('<plugin> <instance> action [...args]', 'Execute an action')
+        .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
+        .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.17' })
+        .option('port', { description: 'Port on which the stateserver is running', alias: 'p', default: 2000, type: 'number'})
+        .demandCommand(4)
+        .help()
+        .argv;
 
-args._.splice(0, 2);
-const [plugin, instance, command] = args._.splice(0, 3);
-let stateServerAPI;
+    args._.splice(0, 2);
+    const [plugin, instance, command] = args._.splice(0, 3);
+    let stateServerAPI;
 
-const commands = {
-    status: async () => {
-        const callback = (state) => {
-            try {
-                console.log(args._.length > 0 ? parseString(args._[0], state) : state);
-            } catch (error) {
-                console.error(error.message);
-                stateServerAPI.end();
+    const commands = {
+        status: async () => {
+            const callback = (state) => {
+                try {
+                    console.log(args._.length > 0 ? parseString(args._[0], state) : state);
+                } catch (error) {
+                    console.error(error.message);
+                    stateServerAPI.close();
+                }
+            };
+
+            if (!args.tail) {
+                stateServerAPI.get(plugin, instance)
+                    .then(callback)
+                    .then(stateServerAPI.close);
+
+                return 0;
             }
-        };
 
-        if (!args.tail) {
-            stateServerAPI.get(plugin, instance)
-                .then(callback)
-                .then(stateServerAPI.end);
-
+            stateServerAPI.subscribe(plugin, instance, callback);
             return 0;
+        },
+
+        action: async () => {
+            const response = await stateServerAPI.action(plugin, instance, args._);
+            stateServerAPI.close();
+            console.log(response.status);
+            return response.code;
         }
-
-        stateServerAPI.subscribe(plugin, instance, callback);
-        return 0;
-    },
-
-    action: async () => {
-        const response = await stateServerAPI.action(plugin, instance, args._);
-        stateServerAPI.end();
-        console.log(response.status);
-        return response.code;
     }
+
+    if (!commands[command]) {
+        console.log(`Command ${command} is unkown.`);
+        process.exitCode = 1;
+        return;
+    }
+
+    try {
+        stateServerAPI = await StateServerAPI({
+            port: args.port,
+            host: args.host
+        });
+    } catch (error) {
+        console.error('Server unreachable ', error);
+        process.exitCode = 1;
+        return;
+    }
+
+    process.on('SIGINT', () => {
+        stateServerAPI.close();
+    });
+
+    commands[command]().then((statusCode) => {
+        process.exitCode = statusCode;
+    });
 }
 
-if (!commands[command]) {
-    console.log(`Command ${command} is unkown.`);
-    process.exit(1);
-}
-
-stateServerAPI = StateServerAPI({
-    port: args.port,
-    host: args.host
-});
-process.on('SIGINT', () => {
-    stateServerAPI.end();
-});
-
-
-commands[command]().then((statusCode) => {
-    process.exitCode = statusCode;
-})
+main();

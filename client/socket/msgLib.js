@@ -1,82 +1,30 @@
+const apiLib = require('../apiLib');
 const net = require('net');
 
 const msgLib = (server) => {
-    const client = new net.Socket();
-    let state = {};
-    let callbacks = {};
-    let getCallback = null;
-    let actionCallback = null;
+    return new Promise(async (resolve, reject) => {
+        const socket = new net.Socket();
+        let connected;
+        let onConnected = new Promise((resolve) => socket.once('connect', () => resolve(true)));
+        socket.close = () => socket.end();
+        socket.send = socket.write;
+        socket.onOpen = (callback) => onConnected.then(callback);
+        socket.connected = () => connected;
 
-    client.on('data', function (message) {
-        message = JSON.parse(message);
-        const { data, type } = message;
+        const api = apiLib(socket);
+        socket.on('data', api.processMessage);
 
-        switch (type) {
-            case 'stateUpdate':
-                state[message.plugin][message.instance] = data;
-                callbacks[message.plugin][message.instance](data);
-                break;
+        socket.once('error', reject);
+        socket.connect(server.port, server.host);
+        connected = await onConnected;
+        socket.removeListener('error', reject);
 
-            case 'getResponse':
-                if (!getCallback) { console.error('Received get response while no callback was set!'); return; }
-                getCallback(data);
-                getCallback = null;
-                break;
+        socket.on('error', (err) => {
+            console.error('Socket error: ', err);
+        });
 
-            case 'actionResponse':
-                if (!actionCallback) { console.error('Received action response while no callback was set!'); return; }
-                actionCallback(data);
-                actionCallback = null;
-                break;
-
-            case 'error':
-                console.error('Error', data);
-                break;
-
-            default:
-                console.error('Received unkown type', data.type);
-                return;
-        }
+        resolve(api);
     });
-
-    client.connect(server.port, server.host);
-
-    return {
-        subscribe: (plugin, instance, callback) => {
-            if (!state[plugin]) { state[plugin] = {}; callbacks[plugin] = {}; }
-            if (callbacks[plugin][instance]) { console.log('Double subscribe is not supported.'); return; }
-
-            callbacks[plugin][instance] = callback;
-            client.write(JSON.stringify({ command: 'subscribe', plugin, instance }));
-        },
-
-        unsubscribe: (plugin, instance) => {
-            if (!state[plugin]) { console.log(`Unkown plugin ${plugin}`); return; }
-            if (!state[plugin][instance]) { console.log(`Unkown instance ${instance}`); return; }
-
-            client.write(JSON.stringify({ command: 'unsubscribe', plugin, instance }));
-            delete callbacks[plugin][instance];
-            delete state[plugin][instance];
-        },
-
-        get: (plugin, instance) => {
-            return new Promise((resolve) => {
-                getCallback = resolve;
-                client.write(JSON.stringify({ command: 'get', plugin, instance }));
-            });
-        },
-
-        action: (plugin, instance, args) => {
-            return new Promise((resolve) => {
-                actionCallback = resolve;
-                client.write(JSON.stringify({ command: 'action', plugin, instance, args }));
-            });
-        },
-
-        end: () => {
-            client.end();
-        }
-    }
 };
 
 module.exports = msgLib;
