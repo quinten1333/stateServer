@@ -119,12 +119,12 @@ const apiLib = ((socket) => {
         action: (plugin, instance, args) => {
             return new Promise((resolve, reject) => {
                 const id = oneTimeCallbacks.add((response) => {
-                    if (response.data && response.data.code !== 0) {
-                        reject(response.data.status)
+                    if (response && response.code !== 0) {
+                        reject(response.status)
                         return;
                     }
 
-                    resolve(response.data);
+                    resolve(response);
                 });
                 socket.send(JSON.stringify({ command: 'action', plugin, instance, id, args }));
             });
