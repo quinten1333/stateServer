@@ -62,6 +62,8 @@ const apiLib = ((socket) => {
     let callbacks = new Callbacks();
     let oneTimeCallbacks = new OneTimeCallback();
 
+    const sendPayload = (payload) => socket.send(JSON.stringify(payload) + '\n');
+
     return {
         processMessage: (message) => {
             message = JSON.parse(message);
@@ -98,21 +100,21 @@ const apiLib = ((socket) => {
             callbacks.add(plugin, instance, callback);
             if (state[plugin] && state[plugin][instance]) { return }
 
-            socket.send(JSON.stringify({ command: 'subscribe', plugin, instance }));
+            sendPayload({ command: 'subscribe', plugin, instance });
         },
 
         unsubscribe: (plugin, instance, callback) => {
             callbacks.remove(plugin, instance, callback);
             if (callbacks.active(plugin, instance)) { return; }
 
-            socket.send(JSON.stringify({ command: 'unsubscribe', plugin, instance }));
+            sendPayload({ command: 'unsubscribe', plugin, instance });
             delete state[plugin][instance];
         },
 
         get: (plugin, instance) => {
             return new Promise((resolve) => {
                 const id = oneTimeCallbacks.add(resolve);
-                socket.send(JSON.stringify({ command: 'get', plugin, instance, id }));
+                sendPayload({ command: 'get', plugin, instance, id });
             });
         },
 
@@ -126,7 +128,7 @@ const apiLib = ((socket) => {
 
                     resolve(response);
                 });
-                socket.send(JSON.stringify({ command: 'action', plugin, instance, id, args }));
+                sendPayload({ command: 'action', plugin, instance, id, args });
             });
         },
 
