@@ -4,13 +4,14 @@ const connections = []
 class Connection {
     constructor(client) {
         this.client = client;
-        this.client.on('data', this.handleCommand); // Native socket
-        this.client.on('message', this.handleCommand); // WebSocket
+        this.client.on('data', this.handleMsg); // Native socket
+        this.client.on('message', this.handleMsg); // WebSocket
         this.client.on('end', this.close);
         this.client.on('close', this.close);
         this.client.on('error', this.onError);
 
         this.callbacks = {};
+        this.packets = []
         connections.push(this);
     }
 
@@ -43,6 +44,26 @@ class Connection {
                 instance: instance
             });
         }
+    }
+
+    handleMsg = (buf) => {
+        const end = buf.indexOf('\n');
+        if (end < 0) {
+            this.packets.push(buf);
+            return;
+        }
+
+        const newPackets = [];
+        if (end !== buf.length - 1) {
+            newPackets.push(buf.slice(end + 1, buf.length));
+            buf = buf.slice(buf, 0, end);
+        }
+
+        buf = buf.slice(0, buf.length - 1);
+        this.packets.push(buf);
+        const msg = Buffer.concat(this.packets);
+        this.packets = newPackets;
+        this.handleCommand(msg);
     }
 
     handleCommand = (msg) => {
