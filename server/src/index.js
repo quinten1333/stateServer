@@ -11,7 +11,7 @@ const JS_FILE_REGEX = /.js$/;
 const servers = [];
 
 const onExit = async (event) => {
-    if (event instanceof Error) console.log('uncaughtException')
+    if (event instanceof Error) console.error('uncaughtException')
 
     console.log("Shutting down.");
 
@@ -25,7 +25,7 @@ const onExit = async (event) => {
 
     if (event instanceof Error) {
         console.error(event);
-        process.exitCode = 1;
+        process.exit(1);
     }
 };
 

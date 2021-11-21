@@ -6,31 +6,35 @@ class Connection {
         this.client = client;
         this.client.on('data', this.handleCommand); // Native socket
         this.client.on('message', this.handleCommand); // WebSocket
-        this.client.on('end', this.onClose);
-        this.client.on('close', this.onClose);
+        this.client.on('end', this.close);
+        this.client.on('close', this.close);
+        this.client.on('error', this.onError);
 
         this.callbacks = {};
         connections.push(this);
     }
 
-    onClose = () => {
+    onError = (error) => {
+        if (error.code === 'ECONNRESET') { return; }
+
+        console.error('Connection errored with unkown error.');
+        console.error(error);
+    }
+
+    close = () => {
         for (const plugin in this.callbacks) {
             for (const instance in this.callbacks[plugin]) {
                 stateKeeper.listen.unregister(plugin, instance, this.callbacks[plugin][instance])
             }
         }
-        this.close();
-    }
 
-    onClose = () => {
         connections.splice(connections.indexOf(this), 1);
+        this.client.close();
     }
 
     send = (type, message, metadata={}) => {
         this.client.send(JSON.stringify({ data: message, type: type, ...metadata }));
     }
-
-    close = () => this.client.close();
 
     getSubscriptCB = (plugin, instance) => {
         return (newState) => {
