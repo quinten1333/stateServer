@@ -17,8 +17,13 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
     }
 
     initialize = async () => {
-        await promisify(this.getLight)();
-        this.timer = setInterval(this.getState, this.pullInterval);
+        try {
+            await promisify(this.getLight)();
+        } catch (error) {
+            console.error('Initializing lifx light ${this.identifier} failed.');
+            console.error(error);
+            return;
+        }
     }
 
     shutdown = async () => {
@@ -39,6 +44,9 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         }
 
         this.tries = 0;
+        if (!this.timer) {
+            this.timer = setInterval(this.getState, this.pullInterval);
+        }
         callback();
     }
 
