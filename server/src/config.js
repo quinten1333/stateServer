@@ -20,6 +20,20 @@ module.exports = {
             instances: {
                 laptop: {}
             }
+        },
+        lifx: {
+            instances: {
+                bedroom: {
+                    identifier: "d073d52d7be0",
+                    fadeDuration: 1000,
+                    pullInterval: 2500,
+                },
+                leds: {
+                    identifier: "d073d5429c55",
+                    fadeDuration: 1000,
+                    pullInterval: 2500,
+                }
+            }
         }
     }
 }
