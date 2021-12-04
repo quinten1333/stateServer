@@ -100,7 +100,8 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
                 brightness = this.state.color.brightness + brightness;
             }
 
-            await this.actions.color(this.state.color.hue, this.state.color.saturation, brightness, this.state.color.kelvin);
+            brightness = Math.max(Math.min(brightness, 100), 0);
+            await this.lightAction('color', [this.state.color.hue, this.state.color.saturation, brightness, this.state.color.kelvin, 0]);
         }
     }
 
