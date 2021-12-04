@@ -30,7 +30,7 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         clearInterval(this.timer);
     }
 
-    getLight = (callback = (err) => {throw err}) => {
+    getLight = (callback = (err) => { throw err }) => {
         this.light = lifxAPI.getLight(this.identifier);
         if (!this.light) {
             if (this.tries > 10) {
@@ -81,9 +81,27 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         off: async () => {
             await this.lightAction('off', [this.fadeDuration]);
         },
+        toggle: async () => {
+            if (this.state.power) {
+                await this.lightAction('off', [this.fadeDuration]);
+            } else {
+                await this.lightAction('on', [this.fadeDuration]);
+            }
+        },
+
         color: async (hue, saturation, brightness, kelvin) => {
             await this.lightAction('color', [hue, saturation, brightness, kelvin, this.fadeDuration]);
         },
+        brightness: async (brightnessStr) => {
+            let brightness = parseInt(brightnessStr);
+            if (isNaN(brightness)) { throw new Error('Given level is not a integer'); }
+
+            if (/^(\+|\-)/.test(brightnessStr)) {
+                brightness = this.state.color.brightness + brightness;
+            }
+
+            await this.actions.color(this.state.color.hue, this.state.color.saturation, brightness, this.state.color.kelvin);
+        }
     }
 
 }
