@@ -14,7 +14,7 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         this.retryInterval = config.args.retryInterval || 600000;
         this.light = null;
         this.tries = 0;
-        this.state = null;
+        this._state = null;
     }
 
     initialize = async () => {
@@ -37,19 +37,17 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         if (!this.light) {
             if (this.tries > 10) {
                 callback(`Could not find light ${this.identifier}.`);
-                setTimeout(this.getLight, this.retryInterval, callback);
+                this.timer = setTimeout(this.getLight, this.retryInterval, callback);
                 return;
             }
 
             this.tries += 1;
-            setTimeout(this.getLight, 1000 * this.tries, callback);
+            this.timer = setTimeout(this.getLight, 1000 * this.tries, callback);
             return;
         }
 
         this.tries = 0;
-        if (!this.timer) {
-            this.timer = setInterval(this.getState, this.pullInterval);
-        }
+        this.timer = setTimeout(this.getState, this.pullInterval);
         callback();
     }
 
@@ -74,7 +72,11 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
             this.onStateChange(newState);
         }
 
-        this.state = newState;
+        this._state = newState;
+    }
+
+    get state() {
+        return this._state || { color: { hue: 0, saturation: 0, brightness: 0, kelvin: 3000 }, power: 0, label: '' };
     }
 
     actions = {
