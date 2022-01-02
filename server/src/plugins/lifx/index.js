@@ -28,7 +28,8 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
     }
 
     shutdown = async () => {
-        clearInterval(this.timer);
+        lifxAPI.shutdown();
+        clearTimeout(this.timer);
     }
 
     getLight = (callback = (err) => { throw err }) => {
