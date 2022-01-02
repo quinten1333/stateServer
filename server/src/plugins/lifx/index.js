@@ -11,6 +11,7 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         this.identifier = config.args.identifier;
         this.fadeDuration = config.args.fadeDuration || 1;
         this.pullInterval = config.args.pullInterval || 5000;
+        this.retryInterval = config.args.retryInterval || 600000;
         this.light = null;
         this.tries = 0;
         this.state = null;
@@ -20,7 +21,7 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         try {
             await promisify(this.getLight)();
         } catch (error) {
-            console.error('Initializing lifx light ${this.identifier} failed.');
+            console.error(`Initializing lifx light ${this.identifier} failed.`);
             console.error(error);
             return;
         }
@@ -35,11 +36,12 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         if (!this.light) {
             if (this.tries > 10) {
                 callback(`Could not find light ${this.identifier}.`);
+                setTimeout(this.getLight, this.retryInterval, callback);
                 return;
             }
 
             this.tries += 1;
-            setTimeout(this.getLight, 1000, callback);
+            setTimeout(this.getLight, 1000 * this.tries, callback);
             return;
         }
 
