@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const stateKeeper = require('./stateKeeper');
+const controllerManager = require('./controllerManager')(stateKeeper);
 const { closeAll } = require('./servers/lib/Connection');
 
 const JS_FILE_REGEX = /.js$/;
@@ -20,6 +21,7 @@ const onExit = async (event) => {
         await server.shutdown();
     }
 
+    await controllerManager.shutdown();
     await stateKeeper.shutdown();
     console.log('Shut down.');
 

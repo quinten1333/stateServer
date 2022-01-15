@@ -38,5 +38,24 @@ module.exports = {
                 }
             }
         }
+    },
+
+    controllers: {
+        pid: {
+            instances: {
+                ledController: {
+                    inputPlugin: 'jsonStorage',
+                    inputInstance: 'room',
+                    inputFn: (state) => state.brightness,
+                    outputPlugin: 'lifx',
+                    outputInstance: 'leds',
+                    outputFn: (output) => ['brightness', output],
+                    kp: 1,
+                    ki: 0,
+                    kd: 0,
+                    setPoint: 100,
+                }
+            }
+        }
     }
 }
