@@ -29,7 +29,8 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
 
     shutdown = async () => {
         lifxAPI.shutdown();
-        clearTimeout(this.timer);
+        clearTimeout(this.lightTimer);
+        clearInterval(this.stateTimer);
     }
 
     getLight = (callback = (err) => { throw err }) => {
@@ -37,17 +38,17 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         if (!this.light) {
             if (this.tries > 10) {
                 callback(`Could not find light ${this.identifier}.`);
-                this.timer = setTimeout(this.getLight, this.retryInterval, callback);
+                this.lightTimer = setTimeout(this.getLight, this.retryInterval, callback);
                 return;
             }
 
             this.tries += 1;
-            this.timer = setTimeout(this.getLight, 1000 * this.tries, callback);
+            this.lightTimer = setTimeout(this.getLight, 1000 * this.tries, callback);
             return;
         }
 
         this.tries = 0;
-        this.timer = setTimeout(this.getState, this.pullInterval);
+        this.stateTimer = setInterval(this.getState, this.pullInterval);
         callback();
     }
 
@@ -69,31 +70,41 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
         const newState = await this.lightAction('getState');
         if (isEqual(this.state, newState)) { return; }
 
-        this.onStateChange(newState);
-        this._state = newState;
+        this.state = newState;
     }
 
     get state() {
         return this._state || { color: { hue: 0, saturation: 0, brightness: 0, kelvin: 3000 }, power: 0, label: '' };
     }
 
+    set state(newState) {
+        this.onStateChange(newState);
+        this._state = newState;
+    }
+
     actions = {
         on: async () => {
             await this.lightAction('on', [this.fadeDuration]);
+            this.state = { ...this.state, power: 1 };
         },
         off: async () => {
             await this.lightAction('off', [this.fadeDuration]);
+            this.state = { ...this.state, power: 0 };
         },
         toggle: async () => {
             if (this.state.power) {
                 await this.lightAction('off', [this.fadeDuration]);
+                this.state = { ...this.state, power: 0 };
             } else {
                 await this.lightAction('on', [this.fadeDuration]);
+                this.state = { ...this.state, power: 1 };
             }
         },
 
         color: async (hue, saturation, brightness, kelvin) => {
             await this.lightAction('color', [hue, saturation, brightness, kelvin, this.fadeDuration]);
+            this.state = { ...this.state, color: { hue, saturation, brightness, kelvin } };
+
         },
         brightness: async (brightnessStr) => {
             let brightness = parseInt(brightnessStr);
@@ -105,6 +116,7 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
 
             brightness = Math.max(Math.min(brightness, 100), 0);
             await this.lightAction('color', [this.state.color.hue, this.state.color.saturation, brightness, this.state.color.kelvin, 0]);
+            this.state = { ...this.state, color: { ...this.state.color, brightness } };
         }
     }
 
