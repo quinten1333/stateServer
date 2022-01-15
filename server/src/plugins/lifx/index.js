@@ -67,11 +67,9 @@ class LifxLight extends EventBased { // TODO: Keep ambient light at a certain le
 
     getState = async () => {
         const newState = await this.lightAction('getState');
+        if (isEqual(this.state, newState)) { return; }
 
-        if (!isEqual(this.state, newState)) {
-            this.onStateChange(newState);
-        }
-
+        this.onStateChange(newState);
         this._state = newState;
     }
 
