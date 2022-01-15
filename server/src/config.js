@@ -18,7 +18,10 @@ module.exports = {
         },
         jsonStorage: {
             instances: {
-                laptop: {}
+                laptop: {},
+                room: {
+                    inMemmory: true,
+                },
             }
         },
         lifx: {

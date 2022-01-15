@@ -21,18 +21,21 @@ class JsonStorage extends EventBased {
         super(config);
 
         this.name = config.name;
+        this.inMemmory = config.args.inMemmory;
         this.state = {};
     }
 
     async initialize() {
         this.storagePath = path.resolve(__dirname, `storage/${this.name}.json`);
-        if (await fileExists(this.storagePath)) {
+        if (!this.inMemmory && await fileExists(this.storagePath)) {
             this.state = JSON.parse(await fs.readFile(this.storagePath));
             this.onStateChange(this.state);
         }
     }
 
     async shutdown() {
+        if (this.inMemmory) { return; }
+
         await fs.writeFile(this.storagePath, JSON.stringify(this.state));
     }
 
