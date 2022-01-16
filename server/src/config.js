@@ -37,6 +37,22 @@ module.exports = {
                     pullInterval: 2500,
                 }
             }
+        },
+
+        bluetooth: {
+            instances: {
+                arduinoNano33BleSense: {
+                    address: '92:D4:B3:8D:EB:F9',
+                    serviceUUID: 'e905de3e-0000-44de-92c4-bb6e04fb0212',
+                    characteristics: {
+                        light: {
+                            uuid: 'e905de3e-2001-44de-92c4-bb6e04fb0212',
+                            notify: true,
+                            toValue: (buf) => [buf.readUInt16LE(), buf.readUInt16LE(2), buf.readUInt16LE(4), buf.readUInt16LE(6)],
+                        },
+                    },
+                },
+            }
         }
     },
 
