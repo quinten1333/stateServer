@@ -67,10 +67,10 @@ class Bluetooth extends EventBased {
     }
 
     async shutdown() {
-        await Promise.all(Object.entries(this.config.characteristics).map(([name, characteristic]) => {
-            if (!characteristic.notify || !this.characteristics[name]) { return; }
+        await Promise.all(Object.values(this.characteristics).map((characteristic) => {
+            if (!characteristic.isNotifying()) { return; }
 
-            return this.characteristics[name].stopNotifications();
+            return characteristic.stopNotifications();
         }));
         if (this.device) {
             await this.device.disconnect();
