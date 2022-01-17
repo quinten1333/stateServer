@@ -61,6 +61,8 @@ class Bluetooth extends EventBased {
     onDisconnected = () => {
         this.connected = false;
         this.device.removeAllListeners();
+        this.state = {};
+        this.onStateChange(this.state);
         this.connect();
     }
 
