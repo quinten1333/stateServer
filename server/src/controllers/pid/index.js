@@ -37,7 +37,8 @@ class PIDController extends ControllerBase {
             newState = this.inputFn(newState);
         }
 
-        this.tick(newState);
+        const output = this.tick(newState);
+        this.stateKeeper.action(this.outputPlugin, this.outputInstance, this.outputFn(output))
     }
 
     tick(input) {
@@ -50,12 +51,7 @@ class PIDController extends ControllerBase {
         const output = this.kp * error + this.integrator - this.kd * inputDiff;
         console.log('PID tick: ', input, output);
 
-        this.output(output);
-    }
-
-
-    output(output) {
-        this.stateKeeper.action(this.outputPlugin, this.outputInstance, this.outputFn(output))
+        return output;
     }
 }
 
