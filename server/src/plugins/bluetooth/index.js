@@ -1,5 +1,5 @@
 const { createBluetooth } = require('node-ble');
-const { isEqual } = require('lodash')
+const { isEqual } = require('lodash');
 
 const { EventBased } = require('../base');
 
@@ -13,7 +13,7 @@ class Bluetooth extends EventBased {
 
         this.connected = false;
         this.characteristics = {};
-        this.state = {}
+        this.state = {};
     }
 
     async initialize() {
