@@ -63,7 +63,13 @@ module.exports = {
                     tickInterval: 1000,
                     inputPlugin: 'bluetooth',
                     inputInstance: 'arduinoNano33BleSense',
-                    inputFn: (state) => state.light[3],
+                    inputFn: (state) => {
+                        if (!state || !state.light) {
+                            return undefined;
+                        }
+
+                        return state.light[3];
+                    },
                     outputPlugin: 'lifx',
                     outputInstance: 'leds',
                     outputFn: (output) => {

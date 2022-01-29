@@ -50,6 +50,9 @@ class PIDController extends ControllerBase {
     onUpdate = (newState) => {
         if (typeof this.inputFn === 'function') {
             newState = this.inputFn(newState);
+            if (newState === undefined) {
+                return;
+            }
         }
 
         this.values.push(newState);
