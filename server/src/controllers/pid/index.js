@@ -1,10 +1,15 @@
+const { isEqual } = require('lodash');
+
 const { ControllerBase } = require('../base');
 
 class PIDController extends ControllerBase {
     constructor({ stateKeeper, name, args }) {
         super();
         this.stateKeeper = stateKeeper;
+        this.values = [];
+        this.tickTimer = null;
 
+        this.tickInterval = args.tickInterval;
         this.inputPlugin = args.inputPlugin;
         this.inputInstance = args.inputInstance;
         this.inputFn = args.inputFn;
@@ -19,6 +24,7 @@ class PIDController extends ControllerBase {
         this.ki = args.ki;
         this.kd = args.kd;
         this.setPoint = args.setPoint;
+        this.fitMode = args.fitMode;
 
         this.integrator = 0;
         this.lastInput = 0;
@@ -26,10 +32,12 @@ class PIDController extends ControllerBase {
 
     async initialize() {
         this.stateKeeper.listen.register(this.inputPlugin, this.inputInstance, this.onUpdate);
+        this.tickTimer = setInterval(this.onTick, this.tickInterval);
     }
 
     async shutdown() {
         this.stateKeeper.listen.unregister(this.inputPlugin, this.inputInstance, this.onUpdate);
+        clearInterval(this.tickTimer);
     }
 
     onUpdate = (newState) => {
@@ -37,8 +45,24 @@ class PIDController extends ControllerBase {
             newState = this.inputFn(newState);
         }
 
-        const output = this.tick(newState);
-        this.stateKeeper.action(this.outputPlugin, this.outputInstance, this.outputFn(output))
+        this.values.push(newState);
+    }
+
+    onTick = () => {
+        if (this.values.length === 0) {
+            console.log('Missed pid tick because of lack of data');
+            return;
+        }
+
+        const values = this.values;
+        this.values = [];
+        const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+
+        const output = this.outputFn(this.tick(avgValue));
+        if (this.prefOutput && isEqual(output, this.prefOutput)) { return; }
+
+        this.stateKeeper.action(this.outputPlugin, this.outputInstance, output);
+        this.prefOutput = output;
     }
 
     tick(input) {
@@ -49,7 +73,7 @@ class PIDController extends ControllerBase {
         this.lastInput = input;
 
         const output = this.kp * error + this.integrator - this.kd * inputDiff;
-        console.log('PID tick: ', input, output);
+        if (this.fitMode) console.log('PID tick: ', input, output);
 
         return output;
     }

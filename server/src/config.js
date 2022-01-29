@@ -1,10 +1,10 @@
 module.exports = {
     server: {
         socket: {
-            listen: process.env.PORT || 3002
+            listen: process.env.PORT || 2000
         },
         webSocket: {
-            listen: process.env.WS_PORT || 3001
+            listen: process.env.WS_PORT || 2001
         }
     },
 
@@ -60,16 +60,21 @@ module.exports = {
         pid: {
             instances: {
                 ledController: {
-                    inputPlugin: 'jsonStorage',
-                    inputInstance: 'room',
-                    inputFn: (state) => state.brightness,
+                    tickInterval: 1000,
+                    inputPlugin: 'bluetooth',
+                    inputInstance: 'arduinoNano33BleSense',
+                    inputFn: (state) => state.light[3],
                     outputPlugin: 'lifx',
                     outputInstance: 'leds',
-                    outputFn: (output) => ['brightness', output],
-                    kp: 1,
-                    ki: 0,
+                    outputFn: (output) => {
+                        output = Math.min(Math.max(Math.round(output), 0), 100);
+                        return ['brightness', output]
+                    },
+                    kp: 0,
+                    ki: 0.2,
                     kd: 0,
-                    setPoint: 100,
+                    setPoint: 82,
+                    fitMode: false,
                 }
             }
         }
