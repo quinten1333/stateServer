@@ -4,7 +4,7 @@ const { promisify } = require('util');
 
 const { EventBased } = require('../base');
 
-class LifxLight extends EventBased { // TODO: Keep ambient light at a certain level
+class LifxLight extends EventBased {
     constructor(config) {
         super(config);
 
