@@ -1,4 +1,5 @@
-const controllerManager = ((stateKeeper) => {
+const controllerManager = (() => {
+    const stateKeeper = require('./stateKeeper');
     const config = require('./config');
 
     const instances = {};
@@ -21,6 +22,10 @@ const controllerManager = ((stateKeeper) => {
     }
 
     return {
+        updateConfig: (controller, instance, key, value) => {
+            config.controllers[controller].instances[instance][key] = value;
+            instances[controller][instance].instance.readConfig(config.controllers[controller].instances[instance]);
+        },
         shutdown: async () => {
             let shuttingDown = [];
             for (const controller in instances) {
@@ -32,6 +37,6 @@ const controllerManager = ((stateKeeper) => {
             await Promise.all(shuttingDown);
         }
     }
-});
+})();
 
 module.exports = controllerManager;

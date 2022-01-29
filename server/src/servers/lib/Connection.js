@@ -1,4 +1,5 @@
 const stateKeeper = require('../../stateKeeper');
+const controllerManager = require('../../controllerManager');
 
 const connections = []
 class Connection {
@@ -121,6 +122,16 @@ class Connection {
 
             case 'action':
                 stateKeeper.action(plugin, instance, args.args).then((data) => this.send('actionResponse', data, { id: args.id }));
+                break;
+
+            case 'controllerUpdate':
+                if (!args.key || !args.value) {
+                    this.send('error', 'Missing key or value argument.', { id: args.id });
+                    return;
+                }
+
+                controllerManager.updateConfig(plugin, instance, args.key, args.value);
+                this.send('actionResponse', 'ok', { id: args.id });
                 break;
 
             default:

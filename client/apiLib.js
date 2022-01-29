@@ -132,6 +132,20 @@ const apiLib = ((socket) => {
             });
         },
 
+        controllerUpdate: (controller, instance, key, value) => {
+            return new Promise((resolve, reject) => {
+                const id = oneTimeCallbacks.add((response) => {
+                    if (response && response.code !== 0) {
+                        reject(response.status)
+                        return;
+                    }
+
+                    resolve(response);
+                });
+                sendPayload({ command: 'controllerUpdate', plugin: controller, instance, id, key, value });
+            });
+        },
+
         connected: socket.connected,
         onOpen: socket.onOpen,
         close: socket.close,

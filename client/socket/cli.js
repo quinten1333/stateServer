@@ -68,6 +68,7 @@ const main = async () => {
     const args = require('yargs')(process.argv)
         .command('<plugin> <instance> status <format>', 'Get the status of an instance.')
         .command('<plugin> <instance> action [...args]', 'Execute an action')
+        .command('<controller> <instance> update key value', 'Update a controllers config')
         .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
         .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.17' })
         .option('port', { description: 'Port on which the stateserver is running', alias: 'p', default: 2000, type: 'number'})
@@ -104,6 +105,13 @@ const main = async () => {
 
         action: async () => {
             const response = await stateServerAPI.action(plugin, instance, args._);
+            stateServerAPI.close();
+            console.log(response.status);
+            return response.code;
+        },
+
+        update: async () => {
+            const response = await stateServerAPI.controllerUpdate(plugin, instance, args._[0], args._[1]);
             stateServerAPI.close();
             console.log(response.status);
             return response.code;

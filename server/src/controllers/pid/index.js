@@ -9,6 +9,14 @@ class PIDController extends ControllerBase {
         this.values = [];
         this.tickTimer = null;
 
+        this.name = name;
+        this.readConfig(args);
+
+        this.integrator = 0;
+        this.lastInput = 0;
+    }
+
+    readConfig = (args) => {
         this.tickInterval = args.tickInterval;
         this.inputPlugin = args.inputPlugin;
         this.inputInstance = args.inputInstance;
@@ -17,8 +25,8 @@ class PIDController extends ControllerBase {
         this.outputInstance = args.outputInstance;
         this.outputFn = args.outputFn;
 
-        if (typeof this.inputFn !== 'function') { console.error(`[!] PID controller ${name} has invalid inputFn. Crash is immenent.`); }
-        if (typeof this.outputFn !== 'function') { console.error(`[!] PID controller ${name} has invalid outputFn. Crash is immenent.`); }
+        if (typeof this.inputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid inputFn. Crash is immenent.`); }
+        if (typeof this.outputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid outputFn. Crash is immenent.`); }
 
         this.kp = args.kp;
         this.ki = args.ki;
@@ -27,9 +35,6 @@ class PIDController extends ControllerBase {
         this.integratorMax = args.integratorMax;
         this.setPoint = args.setPoint;
         this.fitMode = args.fitMode;
-
-        this.integrator = 0;
-        this.lastInput = 0;
     }
 
     async initialize() {
