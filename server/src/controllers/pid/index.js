@@ -23,6 +23,8 @@ class PIDController extends ControllerBase {
         this.kp = args.kp;
         this.ki = args.ki;
         this.kd = args.kd;
+        this.integratorMin = args.integratorMin;
+        this.integratorMax = args.integratorMax;
         this.setPoint = args.setPoint;
         this.fitMode = args.fitMode;
 
@@ -68,6 +70,7 @@ class PIDController extends ControllerBase {
     tick(input) {
         const error = this.setPoint - input;
         this.integrator += this.ki * error;
+        this.integrator = Math.max(Math.min(this.integrator, this.integratorMax), this.integratorMin);
 
         let inputDiff = input - this.lastInput;
         this.lastInput = input;
