@@ -125,7 +125,7 @@ class Connection {
                 break;
 
             case 'controllerUpdate':
-                if (!args.key || !args.value) {
+                if (!('key' in args) || !('value' in args)) {
                     this.send('error', 'Missing key or value argument.', { id: args.id });
                     return;
                 }
