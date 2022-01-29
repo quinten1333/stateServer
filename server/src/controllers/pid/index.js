@@ -61,7 +61,6 @@ class PIDController extends ControllerBase {
 
     onTick = () => {
         if (this.values.length === 0) {
-            console.log('Missed pid tick because of lack of data');
             return;
         }
 
@@ -94,7 +93,7 @@ class PIDController extends ControllerBase {
         this.lastInput = input;
 
         const output = this.kp * error + this.integrator - this.kd * inputDiff;
-        if (this.fitMode) console.log('PID tick: ', input, output);
+        if (this.fitMode) console.log(`PID tick: ${input.toFixed(2)}\t${output.toFixed(2)}`);
 
         return output;
     }
