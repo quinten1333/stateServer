@@ -76,8 +76,8 @@ module.exports = {
                         output = Math.min(Math.max(Math.round(output), 0), 100);
                         return ['brightness', output]
                     },
-                    kp: 0,
-                    ki: 0.2,
+                    kp: 0.1,
+                    ki: 0.1,
                     kd: 0,
                     integratorMin: -10,
                     integratorMax: 110,
