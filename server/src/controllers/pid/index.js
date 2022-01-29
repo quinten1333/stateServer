@@ -17,40 +17,25 @@ class PIDController extends ControllerBase {
     }
 
     readConfig = (args) => {
-        this.tickInterval = args.tickInterval;
-        this.inputPlugin = args.inputPlugin;
-        this.inputInstance = args.inputInstance;
-        this.inputFn = args.inputFn;
-        this.outputPlugin = args.outputPlugin;
-        this.outputInstance = args.outputInstance;
-        this.outputFn = args.outputFn;
+        this.args = args;
 
-        if (typeof this.inputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid inputFn. Crash is immenent.`); }
-        if (typeof this.outputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid outputFn. Crash is immenent.`); }
-
-        this.kp = args.kp;
-        this.ki = args.ki;
-        this.kd = args.kd;
-        this.integratorMin = args.integratorMin;
-        this.integratorMax = args.integratorMax;
-        this.setPoint = args.setPoint;
-        this.updateTreshold = args.updateTreshold;
-        this.fitMode = args.fitMode;
+        if (typeof this.args.inputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid inputFn. Crash is immenent.`); }
+        if (typeof this.args.outputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid outputFn. Crash is immenent.`); }
     }
 
     async initialize() {
-        this.stateKeeper.listen.register(this.inputPlugin, this.inputInstance, this.onUpdate);
-        this.tickTimer = setInterval(this.onTick, this.tickInterval);
+        this.stateKeeper.listen.register(this.args.inputPlugin, this.args.inputInstance, this.onUpdate);
+        this.tickTimer = setInterval(this.onTick, this.args.tickInterval);
     }
 
     async shutdown() {
-        this.stateKeeper.listen.unregister(this.inputPlugin, this.inputInstance, this.onUpdate);
+        this.stateKeeper.listen.unregister(this.args.inputPlugin, this.args.inputInstance, this.onUpdate);
         clearInterval(this.tickTimer);
     }
 
     onUpdate = (newState) => {
-        if (typeof this.inputFn === 'function') {
-            newState = this.inputFn(newState);
+        if (typeof this.args.inputFn === 'function') {
+            newState = this.args.inputFn(newState);
             if (newState === undefined) {
                 return;
             }
@@ -71,29 +56,29 @@ class PIDController extends ControllerBase {
         const pidOutput = this.tick(avgValue);
         if (pidOutput === undefined) {return; }
 
-        const output = this.outputFn(pidOutput);
+        const output = this.args.outputFn(pidOutput);
         if (output === undefined) { return; }
         if (this.prefOutput && isEqual(output, this.prefOutput)) { return; }
 
-        this.stateKeeper.action(this.outputPlugin, this.outputInstance, output);
+        this.stateKeeper.action(this.args.outputPlugin, this.args.outputInstance, output);
         this.prefOutput = output;
     }
 
     tick(input) {
-        const error = this.setPoint - input;
-        if (error < this.setPoint * 0.05 && Math.abs(input - this.lastInput) < this.updateTreshold) {
-            if (this.fitMode) console.log(`PID tick skipped (in: (...,${this.lastInput.toFixed(2)}, ${input.toFixed(2)}), err: ${error.toFixed(2)})`);
+        const error = this.args.setPoint - input;
+        if (error < this.args.setPoint * 0.05 && Math.abs(input - this.lastInput) < this.args.updateTreshold) {
+            if (this.args.fitMode) console.log(`PID tick skipped (in: (...,${this.lastInput.toFixed(2)}, ${input.toFixed(2)}), err: ${error.toFixed(2)})`);
             return undefined;
         }
 
-        this.integrator += this.ki * error;
-        this.integrator = Math.max(Math.min(this.integrator, this.integratorMax), this.integratorMin);
+        this.integrator += this.args.ki * error;
+        this.integrator = Math.max(Math.min(this.integrator, this.args.integratorMax), this.args.integratorMin);
 
         let inputDiff = input - this.lastInput;
         this.lastInput = input;
 
-        const output = this.kp * error + this.integrator - this.kd * inputDiff;
-        if (this.fitMode) console.log(`PID tick: ${input.toFixed(2)}\t${output.toFixed(2)}`);
+        const output = this.args.kp * error + this.integrator - this.args.kd * inputDiff;
+        if (this.args.fitMode) console.log(`PID tick: ${input.toFixed(2)}\t${output.toFixed(2)}`);
 
         return output;
     }
