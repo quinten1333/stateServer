@@ -79,8 +79,8 @@ module.exports = {
                     kp: 0,
                     ki: 0.2,
                     kd: 0,
-                    integratorMin: -50,
-                    integratorMax: 150,
+                    integratorMin: -10,
+                    integratorMax: 110,
                     setPoint: 82,
                     fitMode: false,
                 }
