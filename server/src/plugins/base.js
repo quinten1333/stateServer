@@ -29,6 +29,7 @@ class EventBased {
      */
     async action(args) {
         if (args.length == 0) { return new ActionResult(1, 'Need action command'); }
+        args = [...args];
         const command = args.splice(0, 1);
 
         let commandHandler = this.actions[command];
