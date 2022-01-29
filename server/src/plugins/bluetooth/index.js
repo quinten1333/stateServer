@@ -22,11 +22,17 @@ class Bluetooth extends EventBased {
     }
 
     async connect() {
-        if (!await this.adapter.isDiscovering()) {
-            await this.adapter.startDiscovery();
+        const startDiscovery = async () => {
+            if (!await this.adapter.isDiscovering()) {
+                await this.adapter.startDiscovery();
+            }
         }
 
+        startDiscovery();
+        const discoveryTicker = setInterval(startDiscovery, 10000);
+
         this.device = await this.adapter.waitDevice(this.config.address);
+        clearInterval(discoveryTicker);
         await this.adapter.stopDiscovery();
 
         this.device.on('connect', this.onConnected);
