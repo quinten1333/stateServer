@@ -69,6 +69,7 @@ class PIDController extends ControllerBase {
         const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
 
         const output = this.outputFn(this.tick(avgValue));
+        if (output === undefined) { return; }
         if (this.prefOutput && isEqual(output, this.prefOutput)) { return; }
 
         this.stateKeeper.action(this.outputPlugin, this.outputInstance, output);
