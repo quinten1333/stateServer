@@ -131,7 +131,7 @@ class Connection {
                 }
 
                 controllerManager.updateConfig(plugin, instance, args.key, args.value);
-                this.send('actionResponse', 'ok', { id: args.id });
+                this.send('actionResponse', { code: 0, status: 'ok' }, { id: args.id });
                 break;
 
             default:
