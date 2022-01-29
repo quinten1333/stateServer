@@ -66,7 +66,7 @@ class PIDController extends ControllerBase {
 
     tick(input) {
         const error = this.args.setPoint - input;
-        if (error < this.args.setPoint * 0.05 && Math.abs(input - this.lastInput) < this.args.updateTreshold) {
+        if (Math.abs(error) < this.args.setPoint * 0.05 && Math.abs(input - this.lastInput) < this.args.updateTreshold) {
             if (this.args.fitMode) console.log(`PID tick skipped (in: (...,${this.lastInput.toFixed(2)}, ${input.toFixed(2)}), err: ${error.toFixed(2)})`);
             return undefined;
         }
