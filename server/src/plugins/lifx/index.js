@@ -67,7 +67,13 @@ class LifxLight extends EventBased {
     }
 
     getState = async () => {
-        const newState = await this.lightAction('getState');
+        let newState;
+        try {
+            newState = await this.lightAction('getState');
+        } catch (error) {
+            console.log(`[!] ${this.identifier}: Could not retrieve light state`);
+            return;
+        }
         if (isEqual(this.state, newState)) { return; }
 
         this.state = newState;
