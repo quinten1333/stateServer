@@ -34,6 +34,7 @@ class PIDController extends ControllerBase {
         this.integratorMin = args.integratorMin;
         this.integratorMax = args.integratorMax;
         this.setPoint = args.setPoint;
+        this.updateTreshold = args.updateTreshold;
         this.fitMode = args.fitMode;
     }
 
@@ -68,7 +69,10 @@ class PIDController extends ControllerBase {
         this.values = [];
         const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
 
-        const output = this.outputFn(this.tick(avgValue));
+        const pidOutput = this.tick(avgValue);
+        if (pidOutput === undefined) {return; }
+
+        const output = this.outputFn(pidOutput);
         if (output === undefined) { return; }
         if (this.prefOutput && isEqual(output, this.prefOutput)) { return; }
 
@@ -78,6 +82,11 @@ class PIDController extends ControllerBase {
 
     tick(input) {
         const error = this.setPoint - input;
+        if (error < this.setPoint * 0.05 && Math.abs(input - this.lastInput) < this.updateTreshold) {
+            if (this.fitMode) console.log(`PID tick skipped (in: (...,${this.lastInput.toFixed(2)}, ${input.toFixed(2)}), err: ${error.toFixed(2)})`);
+            return undefined;
+        }
+
         this.integrator += this.ki * error;
         this.integrator = Math.max(Math.min(this.integrator, this.integratorMax), this.integratorMin);
 

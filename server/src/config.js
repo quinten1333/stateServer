@@ -82,6 +82,7 @@ module.exports = {
                     integratorMin: -10,
                     integratorMax: 110,
                     setPoint: 82,
+                    updateTreshold: 3,
                     fitMode: false,
                 }
             }
