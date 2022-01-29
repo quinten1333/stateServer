@@ -22,17 +22,11 @@ class Bluetooth extends EventBased {
     }
 
     async connect() {
-        const startDiscovery = async () => {
-            if (!await this.adapter.isDiscovering()) {
-                await this.adapter.startDiscovery();
-            }
+        if (!await this.adapter.isDiscovering()) {
+            await this.adapter.startDiscovery();
         }
 
-        startDiscovery();
-        const discoveryTicker = setInterval(startDiscovery, 10000);
-
         this.device = await this.adapter.waitDevice(this.config.address);
-        clearInterval(discoveryTicker);
         await this.adapter.stopDiscovery();
 
         this.device.on('connect', this.onConnected);
@@ -41,6 +35,8 @@ class Bluetooth extends EventBased {
     }
 
     onConnected = async () => {
+        if (this.connected) { return; }
+
         this.connected = true;
         this.gattServer = await this.device.gatt();
         this.service = await this.gattServer.getPrimaryService(this.config.serviceUUID);
@@ -65,11 +61,21 @@ class Bluetooth extends EventBased {
     }
 
     onDisconnected = () => {
-        this.connected = false;
-        this.device.removeAllListeners();
-        this.state = {};
-        this.onStateChange(this.state);
-        this.connect();
+        try {
+            if (this.device) {
+                this.device.removeAllListeners();
+                this.device = null;
+            }
+
+            this.connected = false;
+            this.state = {};
+            this.onStateChange(this.state);
+
+            this.connect();
+        } catch (error) {
+            console.error(error);
+            throw error; // Does not not throw properly because of node-ble lib.
+        }
     }
 
     async shutdown() {
