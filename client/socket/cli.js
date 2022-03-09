@@ -46,7 +46,7 @@ const parseString = (string, state) => {
     let startIndex = string.indexOf('[');
     let i = startIndex;
     let result = string.substring(0, startIndex);
-    while (startIndex >= 0) {
+    while (startIndex >= 0 && i < string.length) {
         let char = string[i];
         if (char === '[') depth += 1;
         if (char === ']') depth -= 1;
