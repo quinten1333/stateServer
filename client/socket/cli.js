@@ -130,7 +130,7 @@ const main = async () => {
             host: args.host
         });
     } catch (error) {
-        console.error('Server unreachable ', error);
+        console.error(`${error.code}: ${error.address}:${error.port}`);
         process.exitCode = 1;
         return;
     }
