@@ -34,7 +34,7 @@ class Connection {
         this.client.close();
     }
 
-    send = (type, message, metadata={}) => {
+    send = (type, message, metadata = {}) => {
         this.client.send(JSON.stringify({ data: message, type: type, ...metadata }));
     }
 
@@ -76,7 +76,7 @@ class Connection {
             return;
         }
 
-        if (!args.command || !args.plugin || !args.instance) {
+        if ((!args.command || !args.plugin || !args.instance) && args.command !== 'ping') {
             this.send('error', 'Need at least three arguments: { <command>, <plugin>, <instance> }');
             return;
         }
@@ -84,6 +84,9 @@ class Connection {
         const { command, plugin, instance } = args;
 
         switch (command) {
+            case 'ping':
+                this.send('pong');
+                break;
             case 'subscribe':
                 if (this.callbacks[plugin] && this.callbacks[plugin][instance]) {
                     this.send('error', `You are already subscribed to this instance.`);
@@ -146,4 +149,4 @@ module.exports = {
     closeAll: () => {
         connections.forEach((client) => client.close())
     }
- }
+}
