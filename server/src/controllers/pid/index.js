@@ -19,8 +19,8 @@ class PIDController extends ControllerBase {
     readConfig = (args) => {
         this.args = args;
 
-        if (typeof this.args.inputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid inputFn. Crash is immenent.`); }
-        if (typeof this.args.outputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid outputFn. Crash is immenent.`); }
+        if (this.args.inputFn && typeof this.args.inputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid inputFn.`); process.exit(1); }
+        if (this.args.outputFn && typeof this.args.outputFn !== 'function') { console.error(`[!] PID controller ${this.name} has invalid outputFn.`); process.exit(1); }
     }
 
     async initialize() {
@@ -34,7 +34,7 @@ class PIDController extends ControllerBase {
     }
 
     onUpdate = (newState) => {
-        if (typeof this.args.inputFn === 'function') {
+        if (this.args.inputFn) {
             newState = this.args.inputFn(newState);
             if (newState === undefined) {
                 return;
@@ -56,7 +56,7 @@ class PIDController extends ControllerBase {
         const pidOutput = this.tick(avgValue);
         if (pidOutput === undefined) {return; }
 
-        const output = this.args.outputFn(pidOutput);
+        const output = this.args.outputFn ? this.args.outputFn(pidOutput) : pidOutput;
         if (output === undefined) { return; }
         if (this.prefOutput && isEqual(output, this.prefOutput)) { return; }
 
