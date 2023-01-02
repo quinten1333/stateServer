@@ -53,10 +53,6 @@ class LifxLight extends EventBased {
     }
 
     lightAction = async (command, args = []) => {
-        if (this.light.status !== 'on') {
-            await new Promise((resolve, reject) => this.getLight((err) => err ? reject(err) : resolve()));
-        }
-
         return new Promise((resolve, reject) => {
             this.light[command](...args, (err, value) => {
                 if (err) { reject(err); return; }
