@@ -70,7 +70,7 @@ const main = async () => {
         .command('<plugin> <instance> action [...args]', 'Execute an action')
         .command('<controller> <instance> update key value', 'Update a controllers config')
         .option('tail', { description: 'Subscribe to status updates.', alias: 't' })
-        .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.17' })
+        .option('host', { description: 'Hostname of server to connect to', alias: 'h', default: '192.168.1.11' })
         .option('port', { description: 'Port on which the stateserver is running', alias: 'p', default: 2000, type: 'number'})
         .demandCommand(4)
         .help()
