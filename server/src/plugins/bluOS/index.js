@@ -21,7 +21,7 @@ const getState = (status) => {
         title: status.title1 || status.title2 || status.title3,
         album: status.album,
         artist: status.artist,
-        playing: status.state !== 'pause' && status.status !== 'stop',
+        playing: status.state !== 'pause' && status.state !== 'stop' && status.status !== 'stop',
         volume: status.volume,
         muted: status.mute === 1 || status.volume === 0,
         service: status.service,
