@@ -1,0 +1,14 @@
+{
+  "name": "bluos",
+  "version": "1.0.0",
+  "description": "BluOS plugin for stateServer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Quinten Coltof",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
