@@ -32,16 +32,28 @@ const stateKeeper = (() => {
     return {
         listen: {
             register: (plugin, instance, callback) => {
+                if (!instances[plugin] || !instances[plugin][instance]) {
+                    return undefined;
+                }
+
                 instances[plugin][instance].listeners.push(callback);
             },
 
             unregister: (plugin, instance, callback) => {
+                if (!instances[plugin] || !instances[plugin][instance]) {
+                    return undefined;
+                }
+
                 const instanceListeners = instances[plugin][instance].listeners;
                 instanceListeners.splice(instanceListeners.indexOf(callback), 1);
             }
         },
 
         get: (plugin, instance) => {
+            if (!instances[plugin] || !instances[plugin][instance]) {
+                return undefined;
+            }
+
             return instances[plugin][instance].state;
         },
 
