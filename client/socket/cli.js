@@ -41,9 +41,9 @@ const parseCode = (string, state) => {
 const parseString = (string, state) => {
     if (typeof string !== 'string' || !state) { throw new Error('Invalid args. ' + string + ' ' + state); }
 
-
     let depth = 0;
     let startIndex = string.indexOf('[');
+    let prevEndIndex = 0;
     let i = startIndex;
     let result = string.substring(0, startIndex);
     while (startIndex >= 0 && i < string.length) {
@@ -54,9 +54,15 @@ const parseString = (string, state) => {
 
         if (depth !== 0) { continue; }
 
+        result += string.substring(prevEndIndex, startIndex);
         result += parseCode(string.substring(startIndex + 1, i - 1), state);
+        prevEndIndex = i;
         startIndex = string.indexOf('[', i);
         i = startIndex;
+    }
+
+    if (depth !== 0) {
+      throw new Error("Not all code blocks closed. Missing a closing ']'?")
     }
 
     result += string.substring(string.lastIndexOf(']') + 1);
